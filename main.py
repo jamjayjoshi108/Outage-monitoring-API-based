@@ -57,7 +57,7 @@ IST = timezone(timedelta(hours=5, minutes=30))
 def trigger_scraper():
     # ⚠️ UPDATE THESE TWO LINES TO MATCH YOUR NEW REPOSITORY ⚠️
     repo_owner = "jamjayjoshi108"
-    repo_name = "YOUR_NEW_REPO_NAME_HERE" 
+    repo_name = "Outage-monitoring-API-based" 
     
     # Using workflow filename (daily_scrape.yml) instead of the old numeric ID
     url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/actions/workflows/daily_scrape.yml/dispatches"
