@@ -2,6 +2,7 @@ import os
 import requests
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 from datetime import datetime, timedelta, timezone
 
 # --- PAGE CONFIGURATION ---
@@ -123,18 +124,17 @@ def load_live_data_from_api():
     for df in [df_today, df_5day]:
         if not df.empty:
             if 'Type of Outage' in df.columns:
-                # Force to string and strip invisible spaces
-                df['Type of Outage'] = df['Type of Outage'].astype(str).str.strip()
+                # Store the exact raw API text so we can plot it in the Pie Chart
+                df['Raw Outage Type'] = df['Type of Outage'].astype(str).str.strip()
                 
-                # Aggressive fuzzy matching
+                # Standardize the main column so KPI cards and Tables work flawlessly
                 def standardize_outage(val):
-                    v_lower = val.lower()
+                    v_lower = str(val).lower()
                     if 'power off' in v_lower: return 'Planned Outage'
                     if 'unplanned' in v_lower: return 'Unplanned Outage'
                     if 'planned' in v_lower: return 'Planned Outage'
-                    return val # Fallback
-                    
-                df['Type of Outage'] = df['Type of Outage'].apply(standardize_outage)
+                    return val
+                df['Type of Outage'] = df['Raw Outage Type'].apply(standardize_outage)
 
             for col in time_cols: 
                 if col in df.columns: df[col] = pd.to_datetime(df[col], errors='coerce')
@@ -279,7 +279,6 @@ with tab3:
             ptw_clean[feeder_col] = ptw_clean[feeder_col].astype(str).str.replace('|', ',', regex=False)
             ptw_clean[feeder_col] = ptw_clean[feeder_col].str.split(',')
             
-            # CRITICAL FIX: Resetting index after exploding to prevent styling crashes
             ptw_clean = ptw_clean.explode(feeder_col).reset_index(drop=True)
             
             ptw_clean[feeder_col] = ptw_clean[feeder_col].str.strip()
@@ -340,7 +339,6 @@ with tab3:
                     display_cols_ptw = [feeder_col, start_col_ptw, end_col_ptw, 'Duration (Hours)', 'Time Bucket']
                     if circle_col: display_cols_ptw.insert(0, circle_col)
                     
-                    # CRITICAL FIX: Resetting index on final table so styling background colors work seamlessly
                     final_today_ptws = today_ptws[display_cols_ptw].dropna(subset=[start_col_ptw]).sort_values(by='Duration (Hours)', ascending=False).reset_index(drop=True)
                     
                     def highlight_long_ptw(row):
@@ -356,7 +354,6 @@ with tab3:
                     st.info("No PTW requests recorded specifically for today.")
             else:
                 st.warning("Could not dynamically identify Start and End time columns in the PTW report. Check if End Date is missing from API.")
-
 
 # ==========================================
 # TAB 2: DYNAMIC YOY DRILL-DOWN
@@ -443,6 +440,19 @@ with tab1:
             active_u, closed_u = (len(today_unplanned[today_unplanned['Status_Calc'] == 'Active']), len(today_unplanned[today_unplanned['Status_Calc'] == 'Closed'])) if not today_unplanned.empty else (0,0)
             st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Unplanned Outages</div><div class="kpi-value">{len(today_unplanned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_u}</span> <span class="status-badge">🟢 Closed: {closed_u}</span></div></div>', unsafe_allow_html=True)
 
+        # ---- NEW PLOTLY WIDGET (TODAY) ----
+        st.divider()
+        st.subheader("📊 Interactive Outage Breakdown (Today)")
+        if not df_today.empty and 'Raw Outage Type' in df_today.columns:
+            raw_counts = df_today['Raw Outage Type'].value_counts().reset_index()
+            raw_counts.columns = ['Outage Type', 'Count']
+            
+            fig = px.pie(raw_counts, values='Count', names='Outage Type', hole=0.45,
+                         color_discrete_sequence=['#0056b3', '#17a2b8', '#dc3545'])
+            fig.update_traces(textposition='inside', textinfo='percent+label+value')
+            fig.update_layout(margin=dict(t=20, b=20, l=0, r=0), showlegend=True, height=350)
+            st.plotly_chart(fig, use_container_width=True)
+
         st.divider()
         st.subheader("Zone-wise Distribution (Today)")
         if not df_today.empty:
@@ -464,6 +474,19 @@ with tab1:
         kpi3, kpi4 = st.columns(2)
         with kpi3: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Planned Outages</div><div class="kpi-value">{len(fiveday_planned)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
         with kpi4: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Unplanned Outages</div><div class="kpi-value">{len(fiveday_unplanned)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
+
+        # ---- NEW PLOTLY WIDGET (5 DAYS) ----
+        st.divider()
+        st.subheader("📊 Interactive Outage Breakdown (5 Days)")
+        if not df_5day.empty and 'Raw Outage Type' in df_5day.columns:
+            raw_counts_5d = df_5day['Raw Outage Type'].value_counts().reset_index()
+            raw_counts_5d.columns = ['Outage Type', 'Count']
+            
+            fig_5d = px.pie(raw_counts_5d, values='Count', names='Outage Type', hole=0.45,
+                         color_discrete_sequence=['#0056b3', '#17a2b8', '#dc3545'])
+            fig_5d.update_traces(textposition='inside', textinfo='percent+label+value')
+            fig_5d.update_layout(margin=dict(t=20, b=20, l=0, r=0), showlegend=True, height=350)
+            st.plotly_chart(fig_5d, use_container_width=True)
 
         st.divider()
         st.subheader("Zone-wise Distribution (5 Days)")
