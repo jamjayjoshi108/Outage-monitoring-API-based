@@ -1,1 +1,575 @@
+import os
+import time
+import requests
+import streamlit as st
+import pandas as pd
+from datetime import datetime, timedelta, timezone
 
+# --- PAGE CONFIGURATION ---
+st.set_page_config(page_title="Power Outage Monitoring Dashboard", layout="wide")
+
+# --- GLOBAL TABLE HEADER STYLING ---
+HEADER_STYLES = [
+    {
+        'selector': 'th',
+        'props': [
+            ('background-color', '#004085 !important'),
+            ('color', '#FFC107 !important'),
+            ('font-weight', 'bold !important'),
+            ('text-align', 'center !important')
+        ]
+    },
+    {
+        'selector': 'th div',
+        'props': [
+            ('color', '#FFC107 !important'),
+            ('font-weight', 'bold !important')
+        ]
+    }
+]
+
+# --- COLOR THEME & ENTERPRISE CSS ---
+st.markdown("""
+    <style>
+        .block-container { padding-top: 1.5rem; padding-bottom: 1.5rem; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        p, span, div, caption, .stMarkdown { color: #000000 !important; }
+        h1, h2, h3, h4, h5, h6, div.block-container h1 { color: #004085 !important; font-weight: 700 !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        div.block-container h1 { text-align: center; border-bottom: 3px solid #004085 !important; padding-bottom: 10px; margin-bottom: 30px !important; font-size: 2.2rem !important; }
+        h2 { font-size: 1.3rem !important; border-bottom: 2px solid #004085 !important; padding-bottom: 5px; margin-bottom: 10px !important; }
+        h3 { font-size: 1.05rem !important; margin-bottom: 12px !important; text-transform: uppercase; letter-spacing: 0.5px; }
+        hr { border: 0; border-top: 1px solid #004085; margin: 1.5rem 0; opacity: 0.3; }
+        
+        .kpi-card { background: linear-gradient(135deg, #004481 0%, #0066cc 100%); border-radius: 6px; padding: 1.2rem 1.2rem; display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.08); transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; border: 1px solid #003366; }
+        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0, 68, 129, 0.2); }
+        .kpi-card .kpi-title, .kpi-title { color: #FFC107 !important; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; }
+        .kpi-card .kpi-value, .kpi-value { color: #FFFFFF !important; font-weight: 700; font-size: 2.6rem; margin-bottom: 0; line-height: 1.1; }
+        .kpi-card .kpi-subtext, .kpi-subtext { color: #F8F9FA !important; font-size: 0.85rem; margin-top: 1rem; padding-top: 0.6rem; border-top: 1px solid rgba(255, 255, 255, 0.2); display: flex; justify-content: flex-start; gap: 15px; }
+        
+        .status-badge { background-color: rgba(0, 0, 0, 0.25); padding: 3px 8px; border-radius: 4px; font-weight: 500; color: #FFFFFF !important; }
+        [data-testid="stDataFrame"] > div { border: 2px solid #004085 !important; border-radius: 6px; overflow: hidden; }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- IST TIMEZONE SETUP ---
+IST = timezone(timedelta(hours=5, minutes=30))
+
+# --- GITHUB TRIGGER LOGIC ---
+def trigger_scraper():
+    # ⚠️ UPDATE THESE TWO LINES TO MATCH YOUR NEW REPOSITORY ⚠️
+    repo_owner = "jamjayjoshi108"
+    repo_name = "YOUR_NEW_REPO_NAME_HERE" 
+    
+    # Using workflow filename (daily_scrape.yml) instead of the old numeric ID
+    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/actions/workflows/daily_scrape.yml/dispatches"
+    headers = {"Accept": "application/vnd.github.v3+json", "Authorization": f"token {st.secrets['GITHUB_TOKEN']}"}
+    response = requests.post(url, headers=headers, json={"ref": "main"})
+    
+    if response.status_code == 204:
+        st.toast("✅ Cloud data refresh triggered successfully!")
+        return True
+    else:
+        st.error(f"❌ Failed to trigger scraper. GitHub responded: {response.text}")
+        return False
+
+# --- 1. FILE DEFINITIONS & CHECKING LOGIC ---
+now_ist = datetime.now(IST)
+if now_ist.hour < 8: now_ist -= timedelta(days=1)
+today_str = now_ist.strftime("%Y-%m-%d")
+
+try: ly_date = now_ist.replace(year=now_ist.year - 1)
+except ValueError: ly_date = now_ist.replace(year=now_ist.year - 1, day=28)
+ly_str = ly_date.strftime("%Y-%m-%d")
+
+file_today = f"{today_str}_Outages_Today.csv"
+file_5day = f"{today_str}_Outages_Last_5_Days.csv"
+file_ptw = f"{today_str}_PTW_Last_7_Days.csv"
+
+files_missing = not (os.path.exists(file_today) and os.path.exists(file_5day) and os.path.exists(file_ptw))
+
+if files_missing:
+    lock_file = "scraper_lock.txt"
+    should_trigger = True
+    if os.path.exists(lock_file) and time.time() - os.path.getmtime(lock_file) < 300: 
+        should_trigger = False
+            
+    if should_trigger:
+        if trigger_scraper():
+            with open(lock_file, "w") as f: f.write(str(time.time()))
+            st.warning(f"⚠️ Data for {today_str} is missing. Automatically fetching fresh data from PSPCL...")
+            st.info("⏳ Please wait ~1 minute and refresh this page.")
+        else:
+            st.error("🚨 Could not fetch data due to GitHub API error. Fix the token to continue.")
+    else:
+        st.info("⏳ The API scraper is currently running in the background. Please wait a moment and refresh.")
+    st.stop()
+
+# --- 2. DATA LOADING LOGIC ---
+@st.cache_data(ttl="10m")
+def load_live_data(f_today, f_5day, f_ptw):
+    df_today = pd.read_csv(f_today)
+    df_5day = pd.read_csv(f_5day)
+    df_ptw = pd.read_csv(f_ptw)
+    
+    df_today['Type of Outage'] = df_today['Type of Outage'].replace('Power Off By PC', 'Planned Outage')
+    df_5day['Type of Outage'] = df_5day['Type of Outage'].replace('Power Off By PC', 'Planned Outage')
+    
+    time_cols = ['Start Time', 'End Time']
+    for df in [df_today, df_5day]:
+        for col in time_cols: df[col] = pd.to_datetime(df[col], errors='coerce')
+        df['Status_Calc'] = df['Status'].apply(lambda x: 'Active' if str(x).strip().title() == 'Open' else 'Closed')
+        
+        def assign_bucket(mins):
+            if pd.isna(mins) or mins < 0: return "Active/Unknown"
+            hrs = mins / 60
+            if hrs <= 2: return "Up to 2 Hrs"
+            elif hrs <= 4: return "2-4 Hrs"
+            elif hrs <= 8: return "4-8 Hrs"
+            else: return "Above 8 Hrs"
+        df['Duration Bucket'] = df['Diff in mins'].apply(assign_bucket)
+        
+    return df_today, df_5day, df_ptw
+
+@st.cache_data
+def load_historical_data():
+    if os.path.exists('Historical_2026.csv') and os.path.exists('Historical_2025.csv'):
+        df_26, df_25 = pd.read_csv('Historical_2026.csv'), pd.read_csv('Historical_2025.csv')
+        for df in [df_26, df_25]:
+            df['Type of Outage'] = df['Type of Outage'].replace('Power Off By PC', 'Planned Outage')
+            df['Outage Date'] = pd.to_datetime(df['Start Time'], errors='coerce').dt.date
+        return df_26, df_25
+    return pd.DataFrame(), pd.DataFrame()
+
+df_today, df_5day, df_ptw = load_live_data(file_today, file_5day, file_ptw)
+df_hist_curr, df_hist_ly = load_historical_data()
+
+# --- HELPER FUNCTIONS ---
+def generate_yoy_dist_expanded(df_curr, df_ly, group_col):
+    def _agg(df, prefix):
+        if df.empty: return pd.DataFrame({group_col: []}).set_index(group_col)
+        df['Diff in mins'] = pd.to_numeric(df['Diff in mins'], errors='coerce').fillna(0)
+        g = df.groupby([group_col, 'Type of Outage']).agg(Count=('Type of Outage', 'size'), TotalHrs=('Diff in mins', lambda x: round(x.sum() / 60, 2)), AvgHrs=('Diff in mins', lambda x: round(x.mean() / 60, 2))).unstack(fill_value=0)
+        g.columns = [f"{prefix} {outage} ({metric})" for metric, outage in g.columns]
+        return g
+
+    c_grp = _agg(df_curr, 'Curr')
+    l_grp = _agg(df_ly, 'LY')
+    merged = pd.merge(c_grp, l_grp, on=group_col, how='outer').fillna(0).reset_index()
+    
+    expected_cols = []
+    for prefix in ['Curr', 'LY']:
+        for outage in ['Planned Outage', 'Unplanned Outage']:
+            for metric in ['Count', 'TotalHrs', 'AvgHrs']:
+                col_name = f"{prefix} {outage} ({metric})"
+                expected_cols.append(col_name)
+                if col_name not in merged.columns: merged[col_name] = 0
+                    
+    for col in expected_cols:
+        if '(Count)' in col: merged[col] = merged[col].astype(int)
+        else: merged[col] = merged[col].astype(float).round(2)
+            
+    merged['Curr Total (Count)'] = merged['Curr Planned Outage (Count)'] + merged['Curr Unplanned Outage (Count)']
+    merged['LY Total (Count)'] = merged['LY Planned Outage (Count)'] + merged['LY Unplanned Outage (Count)']
+    merged['YoY Delta (Total)'] = merged['Curr Total (Count)'] - merged['LY Total (Count)']
+    
+    cols_order = [group_col, 'Curr Planned Outage (Count)', 'Curr Planned Outage (TotalHrs)', 'Curr Planned Outage (AvgHrs)', 'LY Planned Outage (Count)', 'LY Planned Outage (TotalHrs)', 'LY Planned Outage (AvgHrs)', 'Curr Unplanned Outage (Count)', 'Curr Unplanned Outage (TotalHrs)', 'Curr Unplanned Outage (AvgHrs)', 'LY Unplanned Outage (Count)', 'LY Unplanned Outage (TotalHrs)', 'LY Unplanned Outage (AvgHrs)', 'Curr Total (Count)', 'LY Total (Count)', 'YoY Delta (Total)']
+    return merged[cols_order]
+
+def apply_pu_gradient(styler, df):
+    p_cols = [c for c in df.columns if 'Planned' in str(c) and pd.api.types.is_numeric_dtype(df[c])]
+    u_cols = [c for c in df.columns if 'Unplanned' in str(c) and pd.api.types.is_numeric_dtype(df[c])]
+    if p_cols: styler = styler.background_gradient(subset=p_cols, cmap='Blues', vmin=0)
+    if u_cols: styler = styler.background_gradient(subset=u_cols, cmap='Reds', vmin=0)
+    return styler
+
+def highlight_delta(val):
+    if isinstance(val, int):
+        if val > 0: return 'color: #D32F2F; font-weight: bold;'
+        elif val < 0: return 'color: #388E3C; font-weight: bold;'
+    return ''
+
+def create_bucket_pivot(df, bucket_order):
+    if df.empty: return pd.DataFrame(columns=bucket_order + ['Total'])
+    pivot = pd.crosstab(df['Circle'], df['Duration Bucket'])
+    pivot = pivot.reindex(columns=[c for c in bucket_order if c in pivot.columns], fill_value=0)
+    pivot['Total'] = pivot.sum(axis=1)
+    return pivot
+
+
+# --- NOTORIOUS FEEDERS CALCULATION (Tab 1) ---
+df_5day['Outage Date'] = df_5day['Start Time'].dt.date
+feeder_days = df_5day.groupby(['Circle', 'Feeder'])['Outage Date'].nunique().reset_index(name='Days with Outages')
+notorious = feeder_days[feeder_days['Days with Outages'] >= 3]
+
+feeder_stats = df_5day.groupby(['Circle', 'Feeder']).agg(Total_Events=('Start Time', 'size'), Avg_Mins=('Diff in mins', 'mean'), Total_Mins=('Diff in mins', 'sum')).reset_index()
+feeder_stats.rename(columns={'Total_Events': 'Total Outage Events'}, inplace=True)
+feeder_stats['Total Duration (Hours)'] = (feeder_stats['Total_Mins'] / 60).round(2)
+feeder_stats['Average Duration (Hours)'] = (feeder_stats['Avg_Mins'] / 60).round(2)
+feeder_stats = feeder_stats.drop(columns=['Avg_Mins', 'Total_Mins'])
+
+notorious = notorious.merge(feeder_stats, on=['Circle', 'Feeder']).sort_values(by=['Circle', 'Days with Outages', 'Total Outage Events'], ascending=[True, False, False])
+top_5_notorious = notorious.groupby('Circle').head(5)
+notorious_set = set(zip(top_5_notorious['Circle'], top_5_notorious['Feeder']))
+
+
+# --- MAIN DASHBOARD RENDER ---
+header_col1, header_col2 = st.columns([0.8, 0.2])
+
+with header_col1:
+    st.title("⚡ Power Outage Monitoring Dashboard")
+
+with header_col2:
+    admin_pwd = st.text_input("Admin Passcode", type="password", placeholder="Enter passcode to refresh...", label_visibility="collapsed")
+    
+    if st.button("🔄 Refresh Data", type="primary", use_container_width=True):
+        if admin_pwd == "PsPcL":
+            if trigger_scraper():
+                with open("scraper_lock.txt", "w") as f:
+                    f.write(str(time.time()))
+                st.info("⏳ Cloud API fetch started. Please wait ~1 minute and refresh.")
+        elif admin_pwd == "":
+            st.warning("⚠️ Please enter a passcode to refresh.")
+        else:
+            st.error("❌ Incorrect passcode.")
+
+tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "📈 YoY Comparison", "🛠️ PTW Frequency"])
+
+# ==========================================
+# TAB 3: PTW FREQUENCY
+# ==========================================
+with tab3:
+    st.header("🛠️ PTW Frequency Tracker (Last 7 Days)")
+    st.markdown("Identifies specific feeders that had a Permit to Work (PTW) taken against them **two or more times** in separate requests over the last 7 days.")
+
+    if df_ptw.empty:
+        st.info("No PTW data found for the last 7 days.")
+    else:
+        ptw_col = next((c for c in df_ptw.columns if 'ptw' in c.lower() or 'request' in c.lower() or 'id' in c.lower()), None)
+        feeder_col = next((c for c in df_ptw.columns if 'feeder' in c.lower()), None)
+        status_col = next((c for c in df_ptw.columns if 'status' in c.lower()), None)
+        circle_col = next((c for c in df_ptw.columns if 'circle' in c.lower()), None)
+        
+        start_col_ptw = next((c for c in df_ptw.columns if ('start' in c.lower() or 'from' in c.lower()) and ('date' in c.lower() or 'time' in c.lower())), None)
+        end_col_ptw = next((c for c in df_ptw.columns if ('end' in c.lower() or 'to' in c.lower()) and ('date' in c.lower() or 'time' in c.lower())), None)
+
+        if not ptw_col or not feeder_col:
+            st.error("Could not dynamically map required columns from the PTW export.")
+        else:
+            ptw_clean = df_ptw.copy()
+            if status_col:
+                ptw_clean = ptw_clean[~ptw_clean[status_col].astype(str).str.contains('Cancellation', na=False, case=False)]
+
+            ptw_clean[feeder_col] = ptw_clean[feeder_col].astype(str).str.replace('|', ',', regex=False)
+            ptw_clean[feeder_col] = ptw_clean[feeder_col].str.split(',')
+            ptw_clean = ptw_clean.explode(feeder_col)
+            ptw_clean[feeder_col] = ptw_clean[feeder_col].str.strip()
+            ptw_clean = ptw_clean[ptw_clean[feeder_col] != '']
+
+            group_cols = [feeder_col]
+            if circle_col: group_cols.insert(0, circle_col)
+                
+            ptw_counts = ptw_clean.groupby(group_cols).agg(Unique_PTWs=(ptw_col, 'nunique'), PTW_IDs=(ptw_col, lambda x: ', '.join(x.dropna().astype(str).unique()))).reset_index()
+            repeat_feeders = ptw_counts[ptw_counts['Unique_PTWs'] >= 2].sort_values(by='Unique_PTWs', ascending=False)
+            repeat_feeders = repeat_feeders.rename(columns={'Unique_PTWs': 'PTW Request Count', 'PTW_IDs': 'Associated PTW Request Numbers'})
+
+            kpi1, kpi2 = st.columns(2)
+            with kpi1: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Active PTW Requests</div><div class="kpi-value">{df_ptw[ptw_col].nunique()}</div></div><div class="kpi-subtext"><span class="status-badge">Last 7 Days</span></div></div>', unsafe_allow_html=True)
+            with kpi2: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Feeders with Multiple PTWs</div><div class="kpi-value">{len(repeat_feeders)}</div></div><div class="kpi-subtext"><span class="status-badge" style="background-color: #D32F2F;">🔴 Needs Review</span></div></div>', unsafe_allow_html=True)
+
+            st.divider()
+            st.subheader("⚠️ Repeat PTW Feeders Detail View")
+            if not repeat_feeders.empty:
+                st.dataframe(repeat_feeders.style.set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+            else:
+                st.success("No feeders had multiple PTWs requested against them in the last 7 days! 🎉")
+
+            st.divider()
+            st.subheader("⏳ Today's PTW Requests (Detailed Breakdown)")
+            
+            if start_col_ptw and end_col_ptw:
+                today_ptws = ptw_clean.copy()
+                today_ptws[start_col_ptw] = pd.to_datetime(today_ptws[start_col_ptw], dayfirst=True, errors='coerce')
+                today_ptws[end_col_ptw] = pd.to_datetime(today_ptws[end_col_ptw], dayfirst=True, errors='coerce')
+                
+                req_date_col = next((c for c in df_ptw.columns if 'request' in c.lower() and ('date' in c.lower() or 'time' in c.lower())), None)
+                if req_date_col:
+                    today_ptws[req_date_col] = pd.to_datetime(today_ptws[req_date_col], dayfirst=True, errors='coerce')
+                    mask = (today_ptws[start_col_ptw].dt.date == pd.to_datetime(today_str).date()) | \
+                           (today_ptws[req_date_col].dt.date == pd.to_datetime(today_str).date())
+                else:
+                    mask = (today_ptws[start_col_ptw].dt.date == pd.to_datetime(today_str).date())
+                
+                today_ptws = today_ptws[mask]
+                
+                if not today_ptws.empty:
+                    today_ptws['Duration (Hours)'] = (today_ptws[end_col_ptw] - today_ptws[start_col_ptw]).dt.total_seconds() / 3600.0
+                    today_ptws['Duration (Hours)'] = today_ptws['Duration (Hours)'].apply(lambda x: max(x, 0)).round(2)
+                    
+                    def ptw_bucket(hrs):
+                        if pd.isna(hrs): return "Unknown"
+                        if hrs <= 2: return "0-2 Hrs"
+                        elif hrs <= 4: return "2-4 Hrs"
+                        elif hrs <= 8: return "4-8 Hrs"
+                        else: return "Above 8 Hrs"
+                    
+                    today_ptws['Time Bucket'] = today_ptws['Duration (Hours)'].apply(ptw_bucket)
+                    
+                    display_cols_ptw = [feeder_col, start_col_ptw, end_col_ptw, 'Duration (Hours)', 'Time Bucket']
+                    if circle_col: display_cols_ptw.insert(0, circle_col)
+                    
+                    final_today_ptws = today_ptws[display_cols_ptw].dropna(subset=[start_col_ptw]).sort_values(by='Duration (Hours)', ascending=False)
+                    
+                    def highlight_long_ptw(row):
+                        if pd.notna(row['Duration (Hours)']) and row['Duration (Hours)'] > 5:
+                            return ['background-color: rgba(220, 53, 69, 0.15); color: #850000; font-weight: bold'] * len(row)
+                        return [''] * len(row)
+                        
+                    over_5_count = final_today_ptws[final_today_ptws['Duration (Hours)'] > 5][feeder_col].nunique()
+                    st.markdown(f"**Total Feeders under PTW today exceeding 5 Hours:** `{over_5_count}`")
+                    
+                    st.dataframe(final_today_ptws.style.apply(highlight_long_ptw, axis=1).format({'Duration (Hours)': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+                else:
+                    st.info("No PTW requests recorded specifically for today.")
+            else:
+                st.warning("Could not dynamically identify Start and End time columns in the PTW report. Waiting for developer to add End Date.")
+
+
+# ==========================================
+# TAB 2: DYNAMIC YOY DRILL-DOWN
+# ==========================================
+with tab2:
+    st.header("📈 Historical Year-over-Year Drilldown")
+    
+    if df_hist_curr.empty or df_hist_ly.empty:
+        st.error("Historical Master Data (Historical_2025.csv & Historical_2026.csv) not found in directory.")
+    else:
+        timeframe_options = {
+            "March (Entire Month)": (("2026-03-01", "2026-03-31"), ("2025-03-01", "2025-03-31")),
+            "1st Apr to 7th Apr": (("2026-04-01", "2026-04-07"), ("2025-04-01", "2025-04-07")),
+            "8th Apr to 14th Apr": (("2026-04-08", "2026-04-14"), ("2025-04-08", "2025-04-14")),
+            "15th Apr to 22nd Apr": (("2026-04-15", "2026-04-22"), ("2025-04-15", "2025-04-22")),
+            "1st Apr to 23rd Apr": (("2026-04-01", "2026-04-23"), ("2025-04-01", "2025-04-23"))
+        }
+
+        selected_tf = st.radio("Select Comparison Period:", list(timeframe_options.keys()), horizontal=True)
+        st.divider()
+
+        curr_bounds, ly_bounds = timeframe_options[selected_tf]
+        
+        mask_curr = (df_hist_curr['Outage Date'] >= pd.to_datetime(curr_bounds[0]).date()) & (df_hist_curr['Outage Date'] <= pd.to_datetime(curr_bounds[1]).date())
+        filtered_curr = df_hist_curr[mask_curr]
+        
+        mask_ly = (df_hist_ly['Outage Date'] >= pd.to_datetime(ly_bounds[0]).date()) & (df_hist_ly['Outage Date'] <= pd.to_datetime(ly_bounds[1]).date())
+        filtered_ly = df_hist_ly[mask_ly]
+
+        st.markdown(f"### 📍 1. Zone-wise Distribution ({selected_tf})")
+        st.caption("Includes total counts, total hours, and average hours. Click any row to drill down.")
+        
+        yoy_zone = generate_yoy_dist_expanded(filtered_curr, filtered_ly, 'Zone')
+        
+        zone_selection = st.dataframe(
+            yoy_zone.style.map(highlight_delta, subset=['YoY Delta (Total)']).format(precision=2).set_table_styles(HEADER_STYLES), 
+            width="stretch", hide_index=True, on_select="rerun", selection_mode="single-row"
+        )
+
+        if len(zone_selection.selection.rows) > 0:
+            selected_zone = yoy_zone.iloc[zone_selection.selection.rows[0]]['Zone']
+            
+            st.markdown(f"### 🎯 2. Circle-wise Distribution for **{selected_zone}**")
+            st.caption("Click any row to drill down into Feeder-wise data.")
+            
+            curr_zone_df = filtered_curr[filtered_curr['Zone'] == selected_zone]
+            ly_zone_df = filtered_ly[filtered_ly['Zone'] == selected_zone]
+            
+            yoy_circle = generate_yoy_dist_expanded(curr_zone_df, ly_zone_df, 'Circle')
+            
+            circle_selection = st.dataframe(
+                yoy_circle.style.map(highlight_delta, subset=['YoY Delta (Total)']).format(precision=2).set_table_styles(HEADER_STYLES), 
+                width="stretch", hide_index=True, on_select="rerun", selection_mode="single-row"
+            )
+
+            if len(circle_selection.selection.rows) > 0:
+                selected_circle = yoy_circle.iloc[circle_selection.selection.rows[0]]['Circle']
+                st.markdown(f"### 🔌 3. Feeder-wise Distribution for **{selected_circle}**")
+                
+                curr_circle_df = curr_zone_df[curr_zone_df['Circle'] == selected_circle]
+                ly_circle_df = ly_zone_df[ly_zone_df['Circle'] == selected_circle]
+                
+                yoy_feeder = generate_yoy_dist_expanded(curr_circle_df, ly_circle_df, 'Feeder')
+                st.dataframe(yoy_feeder.style.map(highlight_delta, subset=['YoY Delta (Total)']).format(precision=2).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+
+
+# ==========================================
+# TAB 1: ORIGINAL DASHBOARD
+# ==========================================
+with tab1:
+    col_left, col_right = st.columns(2, gap="large")
+
+    with col_left:
+        st.header(f"📅 Today's Outages ({now_ist.strftime('%d %b %Y')})")
+        today_planned = df_today[df_today['Type of Outage'] == 'Planned Outage']
+        today_unplanned = df_today[df_today['Type of Outage'] == 'Unplanned Outage']
+        
+        st.subheader("Outage Summary")
+        kpi1, kpi2 = st.columns(2)
+        with kpi1:
+            active_p, closed_p = len(today_planned[today_planned['Status_Calc'] == 'Active']), len(today_planned[today_planned['Status_Calc'] == 'Closed'])
+            st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Planned Outages</div><div class="kpi-value">{len(today_planned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_p}</span> <span class="status-badge">🟢 Closed: {closed_p}</span></div></div>', unsafe_allow_html=True)
+        with kpi2:
+            active_u, closed_u = len(today_unplanned[today_unplanned['Status_Calc'] == 'Active']), len(today_unplanned[today_unplanned['Status_Calc'] == 'Closed'])
+            st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Unplanned Outages</div><div class="kpi-value">{len(today_unplanned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_u}</span> <span class="status-badge">🟢 Closed: {closed_u}</span></div></div>', unsafe_allow_html=True)
+
+        st.divider()
+        st.subheader("Zone-wise Distribution (Today)")
+        if not df_today.empty:
+            zone_today = df_today.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
+            for col in ['Planned Outage', 'Unplanned Outage']:
+                if col not in zone_today: zone_today[col] = 0
+            zone_today['Total'] = zone_today['Planned Outage'] + zone_today['Unplanned Outage']
+            
+            styled_zone_today = apply_pu_gradient(zone_today.style, zone_today).set_table_styles(HEADER_STYLES)
+            st.dataframe(styled_zone_today, width="stretch", hide_index=True)
+        else: st.info("No data available for today.")
+
+    with col_right:
+        st.header("⏳ Last 5 Days Trends")
+        fiveday_planned = df_5day[df_5day['Type of Outage'] == 'Planned Outage']
+        fiveday_unplanned = df_5day[df_5day['Type of Outage'] == 'Unplanned Outage']
+        
+        st.subheader("Outage Summary (5 Days)")
+        kpi3, kpi4 = st.columns(2)
+        with kpi3: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Planned Outages</div><div class="kpi-value">{len(fiveday_planned)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
+        with kpi4: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Unplanned Outages</div><div class="kpi-value">{len(fiveday_unplanned)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
+
+        st.divider()
+        st.subheader("Zone-wise Distribution (5 Days)")
+        if not df_5day.empty:
+            zone_5day = df_5day.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
+            for col in ['Planned Outage', 'Unplanned Outage']:
+                if col not in zone_5day: zone_5day[col] = 0
+            zone_5day['Total'] = zone_5day['Planned Outage'] + zone_5day['Unplanned Outage']
+            
+            styled_zone_5day = apply_pu_gradient(zone_5day.style, zone_5day).set_table_styles(HEADER_STYLES)
+            st.dataframe(styled_zone_5day, width="stretch", hide_index=True)
+        else: st.info("No data available for the last 5 days.")
+
+    st.divider()
+    st.header("🚨 Notorious Feeders (3+ Days of Outages in Last 5 Days)")
+    st.caption("Top 5 worst-performing feeders per circle based on continuous outage days.")
+
+    noto_col1, noto_col2 = st.columns(2)
+    with noto_col1: selected_notorious_circle = st.selectbox("Filter by Circle:", ["All Circles"] + sorted(top_5_notorious['Circle'].unique().tolist()), index=0)
+    with noto_col2: selected_notorious_type = st.selectbox("Filter by Outage Type:", ["All Types", "Planned Outage", "Unplanned Outage"], index=0)
+
+    df_dyn = df_5day.copy()
+    if selected_notorious_type != "All Types": df_dyn = df_dyn[df_dyn['Type of Outage'] == selected_notorious_type]
+
+    if not df_dyn.empty:
+        dyn_days = df_dyn.groupby(['Circle', 'Feeder'])['Outage Date'].nunique().reset_index(name='Days with Outages')
+        dyn_noto = dyn_days[dyn_days['Days with Outages'] >= 3]
+
+        if not dyn_noto.empty:
+            dyn_stats = df_dyn.groupby(['Circle', 'Feeder']).agg(Total_Events=('Start Time', 'size'), Avg_Mins=('Diff in mins', 'mean'), Total_Mins=('Diff in mins', 'sum')).reset_index()
+            dyn_stats.rename(columns={'Total_Events': 'Total Outage Events'}, inplace=True)
+            dyn_stats['Total Duration (Hours)'] = (dyn_stats['Total_Mins'] / 60).round(2)
+            dyn_stats['Average Duration (Hours)'] = (dyn_stats['Avg_Mins'] / 60).round(2)
+            dyn_stats = dyn_stats.drop(columns=['Avg_Mins', 'Total_Mins'])
+
+            dyn_noto = dyn_noto.merge(dyn_stats, on=['Circle', 'Feeder']).sort_values(by=['Circle', 'Days with Outages', 'Total Outage Events'], ascending=[True, False, False])
+            dyn_top5 = dyn_noto.groupby('Circle').head(5)
+            filtered_notorious = dyn_top5[dyn_top5['Circle'] == selected_notorious_circle] if selected_notorious_circle != "All Circles" else dyn_top5
+
+            if not filtered_notorious.empty:
+                st.dataframe(filtered_notorious.style.format({'Average Duration (Hours)': '{:.2f}', 'Total Duration (Hours)': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+            else: st.info(f"No notorious feeders found for {selected_notorious_circle} matching the criteria.")
+        else: st.info(f"No notorious feeders identified for {selected_notorious_type}.")
+    else: st.info("No data available for the selected outage type.")
+
+    st.divider()
+    st.header("Comprehensive Circle-wise Breakdown")
+    bucket_order = ["Up to 2 Hrs", "2-4 Hrs", "4-8 Hrs", "Above 8 Hrs", "Active/Unknown"]
+
+    curr_1d_p_tab1 = create_bucket_pivot(df_today[df_today['Type of Outage'] == 'Planned Outage'], bucket_order)
+    curr_1d_u_tab1 = create_bucket_pivot(df_today[df_today['Type of Outage'] == 'Unplanned Outage'], bucket_order)
+    curr_5d_p_tab1 = create_bucket_pivot(df_5day[df_5day['Type of Outage'] == 'Planned Outage'], bucket_order)
+    curr_5d_u_tab1 = create_bucket_pivot(df_5day[df_5day['Type of Outage'] == 'Unplanned Outage'], bucket_order)
+
+    combined_circle = pd.concat(
+        [curr_1d_p_tab1, curr_1d_u_tab1, curr_5d_p_tab1, curr_5d_u_tab1], 
+        axis=1, 
+        keys=['TODAY (Planned Outages)', 'TODAY (Unplanned Outages)', 'LAST 5 DAYS (Planned Outages)', 'LAST 5 DAYS (Unplanned Outages)']
+    ).fillna(0).astype(int)
+
+    st.markdown(" **Click on any row inside the table below** to view the specific Feeder drill-down details.")
+
+    if not combined_circle.empty:
+        styled_combined = apply_pu_gradient(combined_circle.style, combined_circle).set_table_styles(HEADER_STYLES)
+        
+        selection_event = st.dataframe(styled_combined, width="stretch", on_select="rerun", selection_mode="single-row")
+
+        if len(selection_event.selection.rows) > 0:
+            selected_circle = combined_circle.index[selection_event.selection.rows[0]]
+            st.subheader(f"Feeder Details for: {selected_circle}")
+            
+            circle_dates = sorted(list(df_5day[df_5day['Circle'] == selected_circle]['Outage Date'].dropna().unique()))
+            selected_dates = st.multiselect("Filter 5-Days View by Date:", options=circle_dates, default=circle_dates, format_func=lambda x: x.strftime('%d %b %Y'))
+            
+            def highlight_notorious(row): return ['background-color: rgba(220, 53, 69, 0.15); color: #850000; font-weight: bold'] * len(row) if (selected_circle, row['Feeder']) in notorious_set else [''] * len(row)
+
+            today_left, today_right = st.columns(2)
+            with today_left:
+                st.markdown(f"**🔴 TODAY: Planned Outages**")
+                feeder_list_tp = today_planned[today_planned['Circle'] == selected_circle][['Feeder', 'Diff in mins', 'Status_Calc', 'Duration Bucket']].rename(columns={'Status_Calc': 'Status'})
+                st.dataframe(feeder_list_tp.style.apply(highlight_notorious, axis=1).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+            with today_right:
+                st.markdown(f"**🔴 TODAY: Unplanned Outages**")
+                feeder_list_tu = today_unplanned[today_unplanned['Circle'] == selected_circle][['Feeder', 'Diff in mins', 'Status_Calc', 'Duration Bucket']].rename(columns={'Status_Calc': 'Status'})
+                st.dataframe(feeder_list_tu.style.apply(highlight_notorious, axis=1).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+                
+            st.write("") 
+            fiveday_left, fiveday_right = st.columns(2)
+            
+            with fiveday_left:
+                st.markdown(f"**🟢 5-DAYS: Planned Outages**")
+                feeder_list_fp = fiveday_planned[(fiveday_planned['Circle'] == selected_circle) & (fiveday_planned['Outage Date'].isin(selected_dates))].copy()
+                if not feeder_list_fp.empty:
+                    feeder_list_fp['Diff in Hours'] = (feeder_list_fp['Diff in mins'] / 60).round(2)
+                    st.dataframe(feeder_list_fp[['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']].style.apply(highlight_notorious, axis=1).format({'Diff in Hours': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+                else: st.dataframe(pd.DataFrame(columns=['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']).style.set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+                
+            with fiveday_right:
+                st.markdown(f"**🟢 5-DAYS: Unplanned Outages**")
+                feeder_list_fu = fiveday_unplanned[(fiveday_unplanned['Circle'] == selected_circle) & (fiveday_unplanned['Outage Date'].isin(selected_dates))].copy()
+                if not feeder_list_fu.empty:
+                    feeder_list_fu['Diff in Hours'] = (feeder_list_fu['Diff in mins'] / 60).round(2)
+                    st.dataframe(feeder_list_fu[['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']].style.apply(highlight_notorious, axis=1).format({'Diff in Hours': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+                else: st.dataframe(pd.DataFrame(columns=['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']).style.set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+    else: st.info("No circle data available.")
+
+    st.divider()
+    st.header("⚠️ Planned Outages Exceeding 5 Hours (Today)")
+    
+    long_planned = today_planned[pd.to_numeric(today_planned['Diff in mins'], errors='coerce').fillna(0) > 300].copy()
+    
+    if not long_planned.empty:
+        long_planned['Duration (Hours)'] = (long_planned['Diff in mins'] / 60).round(2)
+        cols_to_show = ['Zone', 'Circle', 'Feeder', 'Start Time', 'End Time', 'Duration (Hours)', 'Status_Calc']
+        cols_to_show = [c for c in cols_to_show if c in long_planned.columns]
+        
+        def highlight_long(row):
+            return ['background-color: rgba(220, 53, 69, 0.15); color: #850000; font-weight: bold'] * len(row)
+            
+        total_long_feeders = long_planned['Feeder'].nunique()
+        st.markdown(f"**Total Feeders with Planned Outages > 5 Hours:** `{total_long_feeders}`")
+        
+        st.dataframe(
+            long_planned[cols_to_show].sort_values(by='Duration (Hours)', ascending=False).style.apply(highlight_long, axis=1).format({'Duration (Hours)': '{:.2f}'}).set_table_styles(HEADER_STYLES), 
+            width="stretch", 
+            hide_index=True
+        )
+
+        st.subheader("📍 Zone-wise Summary (> 5 Hrs Planned Outages)")
+        zone_summary = long_planned.groupby('Zone').agg(Total_Feeders=('Feeder', 'nunique'), Total_Duration_Hours=('Duration (Hours)', 'sum')).reset_index()
+        zone_summary.rename(columns={'Total_Feeders': 'Total Feeders', 'Total_Duration_Hours': 'Total Duration (Hours)'}, inplace=True)
+        st.dataframe(zone_summary.style.format({'Total Duration (Hours)': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+    else:
+        st.success("No Planned Outages exceeded 5 hours today! 🎉")
