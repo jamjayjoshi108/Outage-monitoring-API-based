@@ -65,20 +65,20 @@ seven_days_ago = (now_ist - timedelta(days=7)).strftime("%Y-%m-%d")
 # --- 1. DIRECT API DATA LOADING (15 MINUTE REFRESH) ---
 def fetch_from_api(url, payload):
     try:
-        res = requests.post(url, json=payload, headers={'Content-Type': 'application/json'}, timeout=15)
+        res = requests.post(url, json=payload, headers={'Content-Type': 'application/json'}, timeout=20)
         res.raise_for_status()
         data = res.json()
         return data if isinstance(data, list) else data.get("data", [])
     except Exception as e:
-        st.toast(f"⚠️ API Fetch warning: {e}")
+        st.toast(f"API Fetch warning: {e}")
         return []
 
-@st.cache_data(ttl=900, show_spinner="📡 Fetching live data from PSPCL...")
+@st.cache_data(ttl=900, show_spinner="Fetching live data from PSPCL...")
 def load_live_data_from_api():
     api_key = st.secrets["API_KEY"]
     
     outage_cols = ["Zone", "Circle", "Feeder", "Type of Outage", "Status", "Start Time", "End Time", "Diff in mins"]
-    ptw_cols = ["PTW Request ID", "Circle", "Feeder", "Status", "Start Date", "Request Date", "End Date"]
+    ptw_cols = ["PTW Request ID", "Permit Number", "Circle", "Feeder", "Status", "Start Date", "Request Date", "End Date"]
     
     # 1. Fetch Today's Outages
     data_today = fetch_from_api(OUTAGE_URL, {"fromdate": today_str, "todate": today_str, "apikey": api_key})
@@ -104,15 +104,14 @@ def load_live_data_from_api():
     else:
         df_5day = pd.DataFrame(columns=outage_cols)
 
-    # 3. Fetch 7-Day PTWs (Now with End Time!)
+    # 3. Fetch 7-Day PTWs 
     data_ptw = fetch_from_api(PTW_URL, {"fromdate": seven_days_ago, "todate": today_str, "apikey": api_key})
     df_ptw = pd.DataFrame(data_ptw)
     if not df_ptw.empty:
         if 'feeders' in df_ptw.columns:
             df_ptw['feeders'] = df_ptw['feeders'].apply(lambda x: ', '.join(x) if isinstance(x, list) else str(x))
         df_ptw.rename(columns={
-            "ptw_id": "PTW Request ID", 
-            "permit_no": "Permit Number", # 👉 THE FIX: Changed so it doesn't create duplicate columns
+            "ptw_id": "PTW Request ID", "permit_no": "Permit Number", 
             "circle_name": "Circle", "feeders": "Feeder", "current_status": "Status", 
             "start_time": "Start Date", "end_time": "End Date", "creation_date": "Request Date"
         }, inplace=True)
@@ -123,7 +122,6 @@ def load_live_data_from_api():
     time_cols = ['Start Time', 'End Time']
     for df in [df_today, df_5day]:
         if not df.empty:
-            # FIX: Standardize all Outage Type wording so KPI cards find them properly
             if 'Type of Outage' in df.columns:
                 df['Type of Outage'] = df['Type of Outage'].replace({
                     'Planned': 'Planned Outage', 
@@ -134,7 +132,6 @@ def load_live_data_from_api():
             for col in time_cols: 
                 if col in df.columns: df[col] = pd.to_datetime(df[col], errors='coerce')
             
-            # Force 'Diff in mins' to be numeric to prevent math crashes from string JSON payloads
             if 'Diff in mins' in df.columns:
                 df['Diff in mins'] = pd.to_numeric(df['Diff in mins'], errors='coerce')
                 
@@ -274,7 +271,10 @@ with tab3:
 
             ptw_clean[feeder_col] = ptw_clean[feeder_col].astype(str).str.replace('|', ',', regex=False)
             ptw_clean[feeder_col] = ptw_clean[feeder_col].str.split(',')
-            ptw_clean = ptw_clean.explode(feeder_col)
+            
+            # CRITICAL FIX: Resetting index after exploding to prevent styling crashes
+            ptw_clean = ptw_clean.explode(feeder_col).reset_index(drop=True)
+            
             ptw_clean[feeder_col] = ptw_clean[feeder_col].str.strip()
             ptw_clean = ptw_clean[ptw_clean[feeder_col] != '']
 
@@ -282,7 +282,7 @@ with tab3:
             if circle_col: group_cols.insert(0, circle_col)
                 
             ptw_counts = ptw_clean.groupby(group_cols).agg(Unique_PTWs=(ptw_col, 'nunique'), PTW_IDs=(ptw_col, lambda x: ', '.join(x.dropna().astype(str).unique()))).reset_index()
-            repeat_feeders = ptw_counts[ptw_counts['Unique_PTWs'] >= 2].sort_values(by='Unique_PTWs', ascending=False)
+            repeat_feeders = ptw_counts[ptw_counts['Unique_PTWs'] >= 2].sort_values(by='Unique_PTWs', ascending=False).reset_index(drop=True)
             repeat_feeders = repeat_feeders.rename(columns={'Unique_PTWs': 'PTW Request Count', 'PTW_IDs': 'Associated PTW Request Numbers'})
 
             kpi1, kpi2 = st.columns(2)
@@ -299,7 +299,6 @@ with tab3:
             st.divider()
             st.subheader("⏳ Today's PTW Requests (Detailed Breakdown)")
             
-            # Dynamically grab the start and end columns for math logic
             start_col_ptw = next((c for c in df_ptw.columns if ('start' in c.lower() or 'from' in c.lower()) and ('date' in c.lower() or 'time' in c.lower())), None)
             end_col_ptw = next((c for c in df_ptw.columns if ('end' in c.lower() or 'to' in c.lower()) and ('date' in c.lower() or 'time' in c.lower())), None)
 
@@ -334,7 +333,8 @@ with tab3:
                     display_cols_ptw = [feeder_col, start_col_ptw, end_col_ptw, 'Duration (Hours)', 'Time Bucket']
                     if circle_col: display_cols_ptw.insert(0, circle_col)
                     
-                    final_today_ptws = today_ptws[display_cols_ptw].dropna(subset=[start_col_ptw]).sort_values(by='Duration (Hours)', ascending=False)
+                    # CRITICAL FIX: Resetting index on final table so styling background colors work seamlessly
+                    final_today_ptws = today_ptws[display_cols_ptw].dropna(subset=[start_col_ptw]).sort_values(by='Duration (Hours)', ascending=False).reset_index(drop=True)
                     
                     def highlight_long_ptw(row):
                         if pd.notna(row['Duration (Hours)']) and row['Duration (Hours)'] > 5:
