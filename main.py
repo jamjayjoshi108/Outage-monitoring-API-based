@@ -2,7 +2,6 @@ import os
 import requests
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 from datetime import datetime, timedelta, timezone
 
 # --- PAGE CONFIGURATION ---
@@ -124,13 +123,12 @@ def load_live_data_from_api():
     for df in [df_today, df_5day]:
         if not df.empty:
             if 'Type of Outage' in df.columns:
-                # Store the exact raw API text so we can plot it in the Pie Chart
                 df['Raw Outage Type'] = df['Type of Outage'].astype(str).str.strip()
                 
-                # Standardize the main column so KPI cards and Tables work flawlessly
+                # Accurately separate into 3 distinct categories
                 def standardize_outage(val):
                     v_lower = str(val).lower()
-                    if 'power off' in v_lower: return 'Planned Outage'
+                    if 'power off' in v_lower: return 'Power Off By PC'
                     if 'unplanned' in v_lower: return 'Unplanned Outage'
                     if 'planned' in v_lower: return 'Planned Outage'
                     return val
@@ -161,7 +159,17 @@ def load_historical_data():
     if os.path.exists('Historical_2026.csv') and os.path.exists('Historical_2025.csv'):
         df_26, df_25 = pd.read_csv('Historical_2026.csv'), pd.read_csv('Historical_2025.csv')
         for df in [df_26, df_25]:
-            df['Type of Outage'] = df['Type of Outage'].replace({'Planned': 'Planned Outage', 'Unplanned': 'Unplanned Outage', 'Power Off By PC': 'Planned Outage'})
+            # Standardize Historical data to match the 3-category logic
+            if 'Type of Outage' in df.columns:
+                df['Raw Outage Type'] = df['Type of Outage'].astype(str).str.strip()
+                def standardize_outage(val):
+                    v_lower = str(val).lower()
+                    if 'power off' in v_lower: return 'Power Off By PC'
+                    if 'unplanned' in v_lower: return 'Unplanned Outage'
+                    if 'planned' in v_lower: return 'Planned Outage'
+                    return val
+                df['Type of Outage'] = df['Raw Outage Type'].apply(standardize_outage)
+                
             df['Outage Date'] = pd.to_datetime(df['Start Time'], errors='coerce').dt.date
         return df_26, df_25
     return pd.DataFrame(), pd.DataFrame()
@@ -185,7 +193,7 @@ def generate_yoy_dist_expanded(df_curr, df_ly, group_col):
     
     expected_cols = []
     for prefix in ['Curr', 'LY']:
-        for outage in ['Planned Outage', 'Unplanned Outage']:
+        for outage in ['Planned Outage', 'Power Off By PC', 'Unplanned Outage']:
             for metric in ['Count', 'TotalHrs', 'AvgHrs']:
                 col_name = f"{prefix} {outage} ({metric})"
                 expected_cols.append(col_name)
@@ -195,18 +203,28 @@ def generate_yoy_dist_expanded(df_curr, df_ly, group_col):
         if '(Count)' in col: merged[col] = merged[col].astype(int)
         else: merged[col] = merged[col].astype(float).round(2)
             
-    merged['Curr Total (Count)'] = merged['Curr Planned Outage (Count)'] + merged['Curr Unplanned Outage (Count)']
-    merged['LY Total (Count)'] = merged['LY Planned Outage (Count)'] + merged['LY Unplanned Outage (Count)']
+    merged['Curr Total (Count)'] = merged['Curr Planned Outage (Count)'] + merged['Curr Power Off By PC (Count)'] + merged['Curr Unplanned Outage (Count)']
+    merged['LY Total (Count)'] = merged['LY Planned Outage (Count)'] + merged['LY Power Off By PC (Count)'] + merged['LY Unplanned Outage (Count)']
     merged['YoY Delta (Total)'] = merged['Curr Total (Count)'] - merged['LY Total (Count)']
     
-    cols_order = [group_col, 'Curr Planned Outage (Count)', 'Curr Planned Outage (TotalHrs)', 'Curr Planned Outage (AvgHrs)', 'LY Planned Outage (Count)', 'LY Planned Outage (TotalHrs)', 'LY Planned Outage (AvgHrs)', 'Curr Unplanned Outage (Count)', 'Curr Unplanned Outage (TotalHrs)', 'Curr Unplanned Outage (AvgHrs)', 'LY Unplanned Outage (Count)', 'LY Unplanned Outage (TotalHrs)', 'LY Unplanned Outage (AvgHrs)', 'Curr Total (Count)', 'LY Total (Count)', 'YoY Delta (Total)']
+    cols_order = [group_col, 
+                  'Curr Planned Outage (Count)', 'Curr Planned Outage (TotalHrs)', 'Curr Planned Outage (AvgHrs)', 
+                  'LY Planned Outage (Count)', 'LY Planned Outage (TotalHrs)', 'LY Planned Outage (AvgHrs)', 
+                  'Curr Power Off By PC (Count)', 'Curr Power Off By PC (TotalHrs)', 'Curr Power Off By PC (AvgHrs)', 
+                  'LY Power Off By PC (Count)', 'LY Power Off By PC (TotalHrs)', 'LY Power Off By PC (AvgHrs)', 
+                  'Curr Unplanned Outage (Count)', 'Curr Unplanned Outage (TotalHrs)', 'Curr Unplanned Outage (AvgHrs)', 
+                  'LY Unplanned Outage (Count)', 'LY Unplanned Outage (TotalHrs)', 'LY Unplanned Outage (AvgHrs)', 
+                  'Curr Total (Count)', 'LY Total (Count)', 'YoY Delta (Total)']
     return merged[cols_order]
 
 def apply_pu_gradient(styler, df):
     p_cols = [c for c in df.columns if 'Planned' in str(c) and pd.api.types.is_numeric_dtype(df[c])]
     u_cols = [c for c in df.columns if 'Unplanned' in str(c) and pd.api.types.is_numeric_dtype(df[c])]
+    po_cols = [c for c in df.columns if 'Power Off' in str(c) and pd.api.types.is_numeric_dtype(df[c])]
+    
     if p_cols: styler = styler.background_gradient(subset=p_cols, cmap='Blues', vmin=0)
     if u_cols: styler = styler.background_gradient(subset=u_cols, cmap='Reds', vmin=0)
+    if po_cols: styler = styler.background_gradient(subset=po_cols, cmap='Greens', vmin=0)
     return styler
 
 def highlight_delta(val):
@@ -424,81 +442,74 @@ with tab2:
 # TAB 1: ORIGINAL DASHBOARD
 # ==========================================
 with tab1:
-    col_left, col_right = st.columns(2, gap="large")
-
-    with col_left:
-        st.header(f"📅 Today's Outages ({now_ist.strftime('%d %b %Y')})")
-        today_planned = df_today[df_today['Type of Outage'] == 'Planned Outage'] if not df_today.empty else pd.DataFrame(columns=df_today.columns)
-        today_unplanned = df_today[df_today['Type of Outage'] == 'Unplanned Outage'] if not df_today.empty else pd.DataFrame(columns=df_today.columns)
+    # We now drop "Cancelled" records from the live views before counting KPIs
+    if not df_today.empty:
+        valid_today = df_today[~df_today['Status'].astype(str).str.contains('Cancel', case=False, na=False)]
+    else:
+        valid_today = pd.DataFrame(columns=df_today.columns)
         
-        st.subheader("Outage Summary")
-        kpi1, kpi2 = st.columns(2)
-        with kpi1:
-            active_p, closed_p = (len(today_planned[today_planned['Status_Calc'] == 'Active']), len(today_planned[today_planned['Status_Calc'] == 'Closed'])) if not today_planned.empty else (0,0)
-            st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Planned Outages</div><div class="kpi-value">{len(today_planned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_p}</span> <span class="status-badge">🟢 Closed: {closed_p}</span></div></div>', unsafe_allow_html=True)
-        with kpi2:
-            active_u, closed_u = (len(today_unplanned[today_unplanned['Status_Calc'] == 'Active']), len(today_unplanned[today_unplanned['Status_Calc'] == 'Closed'])) if not today_unplanned.empty else (0,0)
-            st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Unplanned Outages</div><div class="kpi-value">{len(today_unplanned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_u}</span> <span class="status-badge">🟢 Closed: {closed_u}</span></div></div>', unsafe_allow_html=True)
+    if not df_5day.empty:
+        valid_5day = df_5day[~df_5day['Status'].astype(str).str.contains('Cancel', case=False, na=False)]
+    else:
+        valid_5day = pd.DataFrame(columns=df_5day.columns)
 
-        # ---- NEW PLOTLY WIDGET (TODAY) ----
-        st.divider()
-        st.subheader("📊 Interactive Outage Breakdown (Today)")
-        if not df_today.empty and 'Raw Outage Type' in df_today.columns:
-            raw_counts = df_today['Raw Outage Type'].value_counts().reset_index()
-            raw_counts.columns = ['Outage Type', 'Count']
-            
-            fig = px.pie(raw_counts, values='Count', names='Outage Type', hole=0.45,
-                         color_discrete_sequence=['#0056b3', '#17a2b8', '#dc3545'])
-            fig.update_traces(textposition='inside', textinfo='percent+label+value')
-            fig.update_layout(margin=dict(t=20, b=20, l=0, r=0), showlegend=True, height=350)
-            st.plotly_chart(fig, use_container_width=True)
+    st.header(f"📅 Today's Outages ({now_ist.strftime('%d %b %Y')})")
+    
+    # 3 Distinct Categories for Today
+    today_planned = valid_today[valid_today['Type of Outage'] == 'Planned Outage'] 
+    today_popc = valid_today[valid_today['Type of Outage'] == 'Power Off By PC'] 
+    today_unplanned = valid_today[valid_today['Type of Outage'] == 'Unplanned Outage'] 
+    
+    st.subheader("Outage Summary")
+    kpi1, kpi2, kpi3 = st.columns(3)
+    with kpi1:
+        active_p, closed_p = (len(today_planned[today_planned['Status_Calc'] == 'Active']), len(today_planned[today_planned['Status_Calc'] == 'Closed'])) if not today_planned.empty else (0,0)
+        st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Planned Outages</div><div class="kpi-value">{len(today_planned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_p}</span> <span class="status-badge">🟢 Closed: {closed_p}</span></div></div>', unsafe_allow_html=True)
+    with kpi2:
+        active_po, closed_po = (len(today_popc[today_popc['Status_Calc'] == 'Active']), len(today_popc[today_popc['Status_Calc'] == 'Closed'])) if not today_popc.empty else (0,0)
+        st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Power Off By PC</div><div class="kpi-value">{len(today_popc)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_po}</span> <span class="status-badge">🟢 Closed: {closed_po}</span></div></div>', unsafe_allow_html=True)
+    with kpi3:
+        active_u, closed_u = (len(today_unplanned[today_unplanned['Status_Calc'] == 'Active']), len(today_unplanned[today_unplanned['Status_Calc'] == 'Closed'])) if not today_unplanned.empty else (0,0)
+        st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Unplanned Outages</div><div class="kpi-value">{len(today_unplanned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_u}</span> <span class="status-badge">🟢 Closed: {closed_u}</span></div></div>', unsafe_allow_html=True)
 
-        st.divider()
-        st.subheader("Zone-wise Distribution (Today)")
-        if not df_today.empty:
-            zone_today = df_today.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
-            for col in ['Planned Outage', 'Unplanned Outage']:
-                if col not in zone_today: zone_today[col] = 0
-            zone_today['Total'] = zone_today['Planned Outage'] + zone_today['Unplanned Outage']
-            
-            styled_zone_today = apply_pu_gradient(zone_today.style, zone_today).set_table_styles(HEADER_STYLES)
-            st.dataframe(styled_zone_today, width="stretch", hide_index=True)
-        else: st.info("No data available for today.")
-
-    with col_right:
-        st.header("⏳ Last 5 Days Trends")
-        fiveday_planned = df_5day[df_5day['Type of Outage'] == 'Planned Outage'] if not df_5day.empty else pd.DataFrame(columns=df_5day.columns)
-        fiveday_unplanned = df_5day[df_5day['Type of Outage'] == 'Unplanned Outage'] if not df_5day.empty else pd.DataFrame(columns=df_5day.columns)
+    st.divider()
+    st.subheader("Zone-wise Distribution (Today)")
+    if not valid_today.empty:
+        zone_today = valid_today.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
+        for col in ['Planned Outage', 'Power Off By PC', 'Unplanned Outage']:
+            if col not in zone_today: zone_today[col] = 0
+        zone_today['Total'] = zone_today['Planned Outage'] + zone_today['Power Off By PC'] + zone_today['Unplanned Outage']
         
-        st.subheader("Outage Summary (5 Days)")
-        kpi3, kpi4 = st.columns(2)
-        with kpi3: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Planned Outages</div><div class="kpi-value">{len(fiveday_planned)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
-        with kpi4: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Unplanned Outages</div><div class="kpi-value">{len(fiveday_unplanned)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
+        styled_zone_today = apply_pu_gradient(zone_today.style, zone_today).set_table_styles(HEADER_STYLES)
+        st.dataframe(styled_zone_today, width="stretch", hide_index=True)
+    else: st.info("No data available for today.")
 
-        # ---- NEW PLOTLY WIDGET (5 DAYS) ----
-        st.divider()
-        st.subheader("📊 Interactive Outage Breakdown (5 Days)")
-        if not df_5day.empty and 'Raw Outage Type' in df_5day.columns:
-            raw_counts_5d = df_5day['Raw Outage Type'].value_counts().reset_index()
-            raw_counts_5d.columns = ['Outage Type', 'Count']
-            
-            fig_5d = px.pie(raw_counts_5d, values='Count', names='Outage Type', hole=0.45,
-                         color_discrete_sequence=['#0056b3', '#17a2b8', '#dc3545'])
-            fig_5d.update_traces(textposition='inside', textinfo='percent+label+value')
-            fig_5d.update_layout(margin=dict(t=20, b=20, l=0, r=0), showlegend=True, height=350)
-            st.plotly_chart(fig_5d, use_container_width=True)
 
-        st.divider()
-        st.subheader("Zone-wise Distribution (5 Days)")
-        if not df_5day.empty:
-            zone_5day = df_5day.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
-            for col in ['Planned Outage', 'Unplanned Outage']:
-                if col not in zone_5day: zone_5day[col] = 0
-            zone_5day['Total'] = zone_5day['Planned Outage'] + zone_5day['Unplanned Outage']
-            
-            styled_zone_5day = apply_pu_gradient(zone_5day.style, zone_5day).set_table_styles(HEADER_STYLES)
-            st.dataframe(styled_zone_5day, width="stretch", hide_index=True)
-        else: st.info("No data available for the last 5 days.")
+    st.divider()
+    st.header("⏳ Last 5 Days Trends")
+    
+    # 3 Distinct Categories for 5 Days
+    fiveday_planned = valid_5day[valid_5day['Type of Outage'] == 'Planned Outage'] 
+    fiveday_popc = valid_5day[valid_5day['Type of Outage'] == 'Power Off By PC'] 
+    fiveday_unplanned = valid_5day[valid_5day['Type of Outage'] == 'Unplanned Outage'] 
+    
+    st.subheader("Outage Summary (5 Days)")
+    kpi4, kpi5, kpi6 = st.columns(3)
+    with kpi4: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Planned Outages</div><div class="kpi-value">{len(fiveday_planned)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
+    with kpi5: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Power Off By PC</div><div class="kpi-value">{len(fiveday_popc)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
+    with kpi6: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Unplanned Outages</div><div class="kpi-value">{len(fiveday_unplanned)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
+
+    st.divider()
+    st.subheader("Zone-wise Distribution (5 Days)")
+    if not valid_5day.empty:
+        zone_5day = valid_5day.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
+        for col in ['Planned Outage', 'Power Off By PC', 'Unplanned Outage']:
+            if col not in zone_5day: zone_5day[col] = 0
+        zone_5day['Total'] = zone_5day['Planned Outage'] + zone_5day['Power Off By PC'] + zone_5day['Unplanned Outage']
+        
+        styled_zone_5day = apply_pu_gradient(zone_5day.style, zone_5day).set_table_styles(HEADER_STYLES)
+        st.dataframe(styled_zone_5day, width="stretch", hide_index=True)
+    else: st.info("No data available for the last 5 days.")
 
     st.divider()
     st.header("🚨 Notorious Feeders (3+ Days of Outages in Last 5 Days)")
@@ -506,9 +517,9 @@ with tab1:
 
     noto_col1, noto_col2 = st.columns(2)
     with noto_col1: selected_notorious_circle = st.selectbox("Filter by Circle:", ["All Circles"] + sorted(top_5_notorious['Circle'].unique().tolist()) if not top_5_notorious.empty else ["All Circles"], index=0)
-    with noto_col2: selected_notorious_type = st.selectbox("Filter by Outage Type:", ["All Types", "Planned Outage", "Unplanned Outage"], index=0)
+    with noto_col2: selected_notorious_type = st.selectbox("Filter by Outage Type:", ["All Types", "Planned Outage", "Power Off By PC", "Unplanned Outage"], index=0)
 
-    df_dyn = df_5day.copy()
+    df_dyn = valid_5day.copy()
     if selected_notorious_type != "All Types" and not df_dyn.empty: 
         df_dyn = df_dyn[df_dyn['Type of Outage'] == selected_notorious_type]
 
@@ -538,14 +549,16 @@ with tab1:
     bucket_order = ["Up to 2 Hrs", "2-4 Hrs", "4-8 Hrs", "Above 8 Hrs", "Active/Unknown"]
 
     curr_1d_p_tab1 = create_bucket_pivot(today_planned, bucket_order)
+    curr_1d_po_tab1 = create_bucket_pivot(today_popc, bucket_order)
     curr_1d_u_tab1 = create_bucket_pivot(today_unplanned, bucket_order)
     curr_5d_p_tab1 = create_bucket_pivot(fiveday_planned, bucket_order)
+    curr_5d_po_tab1 = create_bucket_pivot(fiveday_popc, bucket_order)
     curr_5d_u_tab1 = create_bucket_pivot(fiveday_unplanned, bucket_order)
 
     combined_circle = pd.concat(
-        [curr_1d_p_tab1, curr_1d_u_tab1, curr_5d_p_tab1, curr_5d_u_tab1], 
+        [curr_1d_p_tab1, curr_1d_po_tab1, curr_1d_u_tab1, curr_5d_p_tab1, curr_5d_po_tab1, curr_5d_u_tab1], 
         axis=1, 
-        keys=['TODAY (Planned Outages)', 'TODAY (Unplanned Outages)', 'LAST 5 DAYS (Planned Outages)', 'LAST 5 DAYS (Unplanned Outages)']
+        keys=['TODAY (Planned Outages)', 'TODAY (Power Off By PC)', 'TODAY (Unplanned Outages)', 'LAST 5 DAYS (Planned Outages)', 'LAST 5 DAYS (Power Off By PC)', 'LAST 5 DAYS (Unplanned Outages)']
     ).fillna(0).astype(int)
 
     st.markdown(" **Click on any row inside the table below** to view the specific Feeder drill-down details.")
@@ -564,34 +577,49 @@ with tab1:
             selected_circle = combined_circle.index[selection_event.selection.rows[0]]
             st.subheader(f"Feeder Details for: {selected_circle}")
             
-            circle_dates = sorted(list(df_5day[df_5day['Circle'] == selected_circle]['Outage Date'].dropna().unique()))
+            circle_dates = sorted(list(valid_5day[valid_5day['Circle'] == selected_circle]['Outage Date'].dropna().unique()))
             selected_dates = st.multiselect("Filter 5-Days View by Date:", options=circle_dates, default=circle_dates, format_func=lambda x: x.strftime('%d %b %Y'))
             
             def highlight_notorious(row): return ['background-color: rgba(220, 53, 69, 0.15); color: #850000; font-weight: bold'] * len(row) if (selected_circle, row['Feeder']) in notorious_set else [''] * len(row)
 
-            today_left, today_right = st.columns(2)
+            st.write("---")
+            st.markdown("### 🔴 TODAY DRILLDOWN")
+            today_left, today_mid, today_right = st.columns(3)
             with today_left:
-                st.markdown(f"**🔴 TODAY: Planned Outages**")
+                st.markdown(f"**Planned Outages**")
                 feeder_list_tp = today_planned[today_planned['Circle'] == selected_circle][['Feeder', 'Diff in mins', 'Status_Calc', 'Duration Bucket']].rename(columns={'Status_Calc': 'Status'}) if not today_planned.empty else pd.DataFrame(columns=['Feeder', 'Diff in mins', 'Status', 'Duration Bucket'])
                 st.dataframe(feeder_list_tp.style.apply(highlight_notorious, axis=1).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+            with today_mid:
+                st.markdown(f"**Power Off By PC**")
+                feeder_list_tpo = today_popc[today_popc['Circle'] == selected_circle][['Feeder', 'Diff in mins', 'Status_Calc', 'Duration Bucket']].rename(columns={'Status_Calc': 'Status'}) if not today_popc.empty else pd.DataFrame(columns=['Feeder', 'Diff in mins', 'Status', 'Duration Bucket'])
+                st.dataframe(feeder_list_tpo.style.apply(highlight_notorious, axis=1).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
             with today_right:
-                st.markdown(f"**🔴 TODAY: Unplanned Outages**")
+                st.markdown(f"**Unplanned Outages**")
                 feeder_list_tu = today_unplanned[today_unplanned['Circle'] == selected_circle][['Feeder', 'Diff in mins', 'Status_Calc', 'Duration Bucket']].rename(columns={'Status_Calc': 'Status'}) if not today_unplanned.empty else pd.DataFrame(columns=['Feeder', 'Diff in mins', 'Status', 'Duration Bucket'])
                 st.dataframe(feeder_list_tu.style.apply(highlight_notorious, axis=1).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
                 
-            st.write("") 
-            fiveday_left, fiveday_right = st.columns(2)
+            st.write("---") 
+            st.markdown("### 🟢 LAST 5 DAYS DRILLDOWN")
+            fiveday_left, fiveday_mid, fiveday_right = st.columns(3)
             
             with fiveday_left:
-                st.markdown(f"**🟢 5-DAYS: Planned Outages**")
+                st.markdown(f"**Planned Outages**")
                 feeder_list_fp = fiveday_planned[(fiveday_planned['Circle'] == selected_circle) & (fiveday_planned['Outage Date'].isin(selected_dates))].copy() if not fiveday_planned.empty else pd.DataFrame()
                 if not feeder_list_fp.empty:
                     feeder_list_fp['Diff in Hours'] = (feeder_list_fp['Diff in mins'] / 60).round(2)
                     st.dataframe(feeder_list_fp[['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']].style.apply(highlight_notorious, axis=1).format({'Diff in Hours': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
                 else: st.dataframe(pd.DataFrame(columns=['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']).style.set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
                 
+            with fiveday_mid:
+                st.markdown(f"**Power Off By PC**")
+                feeder_list_fpo = fiveday_popc[(fiveday_popc['Circle'] == selected_circle) & (fiveday_popc['Outage Date'].isin(selected_dates))].copy() if not fiveday_popc.empty else pd.DataFrame()
+                if not feeder_list_fpo.empty:
+                    feeder_list_fpo['Diff in Hours'] = (feeder_list_fpo['Diff in mins'] / 60).round(2)
+                    st.dataframe(feeder_list_fpo[['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']].style.apply(highlight_notorious, axis=1).format({'Diff in Hours': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+                else: st.dataframe(pd.DataFrame(columns=['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']).style.set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+
             with fiveday_right:
-                st.markdown(f"**🟢 5-DAYS: Unplanned Outages**")
+                st.markdown(f"**Unplanned Outages**")
                 feeder_list_fu = fiveday_unplanned[(fiveday_unplanned['Circle'] == selected_circle) & (fiveday_unplanned['Outage Date'].isin(selected_dates))].copy() if not fiveday_unplanned.empty else pd.DataFrame()
                 if not feeder_list_fu.empty:
                     feeder_list_fu['Diff in Hours'] = (feeder_list_fu['Diff in mins'] / 60).round(2)
