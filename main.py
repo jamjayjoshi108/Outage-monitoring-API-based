@@ -107,6 +107,7 @@ def load_live_data_from_api():
     else:
         df_ptw = pd.DataFrame(columns=ptw_cols)
 
+    
     # 4. Process Data Calculations (Same as before)
     time_cols = ['Start Time', 'End Time']
     for df in [df_today, df_5day]:
@@ -114,6 +115,11 @@ def load_live_data_from_api():
             df['Type of Outage'] = df['Type of Outage'].replace('Power Off By PC', 'Planned Outage')
             for col in time_cols: 
                 if col in df.columns: df[col] = pd.to_datetime(df[col], errors='coerce')
+            
+            # 👉 THE FIX: Force 'Diff in mins' to be a true number, converting bad data to NaN
+            if 'Diff in mins' in df.columns:
+                df['Diff in mins'] = pd.to_numeric(df['Diff in mins'], errors='coerce')
+                
             df['Status_Calc'] = df['Status'].apply(lambda x: 'Active' if str(x).strip().title() == 'Active' or str(x).strip().title() == 'Open' else 'Closed')
             
             def assign_bucket(mins):
