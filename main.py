@@ -111,7 +111,8 @@ def load_live_data_from_api():
         if 'feeders' in df_ptw.columns:
             df_ptw['feeders'] = df_ptw['feeders'].apply(lambda x: ', '.join(x) if isinstance(x, list) else str(x))
         df_ptw.rename(columns={
-            "ptw_id": "PTW Request ID", "permit_no": "PTW Request ID", # Handles either key
+            "ptw_id": "PTW Request ID", 
+            "permit_no": "Permit Number", # 👉 THE FIX: Changed so it doesn't create duplicate columns
             "circle_name": "Circle", "feeders": "Feeder", "current_status": "Status", 
             "start_time": "Start Date", "end_time": "End Date", "creation_date": "Request Date"
         }, inplace=True)
