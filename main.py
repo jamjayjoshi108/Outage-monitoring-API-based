@@ -123,11 +123,18 @@ def load_live_data_from_api():
     for df in [df_today, df_5day]:
         if not df.empty:
             if 'Type of Outage' in df.columns:
-                df['Type of Outage'] = df['Type of Outage'].replace({
-                    'Planned': 'Planned Outage', 
-                    'Unplanned': 'Unplanned Outage', 
-                    'Power Off By PC': 'Planned Outage'
-                })
+                # Force to string and strip invisible spaces
+                df['Type of Outage'] = df['Type of Outage'].astype(str).str.strip()
+                
+                # Aggressive fuzzy matching
+                def standardize_outage(val):
+                    v_lower = val.lower()
+                    if 'power off' in v_lower: return 'Planned Outage'
+                    if 'unplanned' in v_lower: return 'Unplanned Outage'
+                    if 'planned' in v_lower: return 'Planned Outage'
+                    return val # Fallback
+                    
+                df['Type of Outage'] = df['Type of Outage'].apply(standardize_outage)
 
             for col in time_cols: 
                 if col in df.columns: df[col] = pd.to_datetime(df[col], errors='coerce')
