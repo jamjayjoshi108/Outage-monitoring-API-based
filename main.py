@@ -49,9 +49,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- API ENDPOINTS ---
-OUTAGE_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.OutageEvents"
-PTW_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.PTWRequests"
+# --- NEW VERSION 2 API ENDPOINTS ---
+OUTAGE_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.getOutages"
+PTW_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.getPTWRequests"
 
 # --- IST TIMEZONE & DATE SETUP ---
 IST = timezone(timedelta(hours=5, minutes=30))
@@ -73,7 +73,6 @@ def fetch_from_api(url, payload):
         st.toast(f"⚠️ API Fetch warning: {e}")
         return []
 
-# ttl=900 forces Streamlit to automatically refresh the data every 15 minutes
 @st.cache_data(ttl=900, show_spinner="📡 Fetching live data from PSPCL...")
 def load_live_data_from_api():
     api_key = st.secrets["API_KEY"]
@@ -85,7 +84,11 @@ def load_live_data_from_api():
     data_today = fetch_from_api(OUTAGE_URL, {"fromdate": today_str, "todate": today_str, "apikey": api_key})
     df_today = pd.DataFrame(data_today)
     if not df_today.empty:
-        df_today.rename(columns={"zone_name": "Zone", "circle_name": "Circle", "feeder_name": "Feeder", "outage_type": "Type of Outage", "status": "Status", "start_time": "Start Time", "end_time": "End Time", "duration_minutes": "Diff in mins"}, inplace=True)
+        df_today.rename(columns={
+            "zone_name": "Zone", "circle_name": "Circle", "feeder_name": "Feeder", 
+            "outage_type": "Type of Outage", "outage_status": "Status", 
+            "start_time": "Start Time", "end_time": "End Time", "duration_minutes": "Diff in mins"
+        }, inplace=True)
     else:
         df_today = pd.DataFrame(columns=outage_cols)
 
@@ -93,34 +96,49 @@ def load_live_data_from_api():
     data_5day = fetch_from_api(OUTAGE_URL, {"fromdate": five_days_ago, "todate": today_str, "apikey": api_key})
     df_5day = pd.DataFrame(data_5day)
     if not df_5day.empty:
-        df_5day.rename(columns={"zone_name": "Zone", "circle_name": "Circle", "feeder_name": "Feeder", "outage_type": "Type of Outage", "status": "Status", "start_time": "Start Time", "end_time": "End Time", "duration_minutes": "Diff in mins"}, inplace=True)
+        df_5day.rename(columns={
+            "zone_name": "Zone", "circle_name": "Circle", "feeder_name": "Feeder", 
+            "outage_type": "Type of Outage", "outage_status": "Status", 
+            "start_time": "Start Time", "end_time": "End Time", "duration_minutes": "Diff in mins"
+        }, inplace=True)
     else:
         df_5day = pd.DataFrame(columns=outage_cols)
 
-    # 3. Fetch 7-Day PTWs
+    # 3. Fetch 7-Day PTWs (Now with End Time!)
     data_ptw = fetch_from_api(PTW_URL, {"fromdate": seven_days_ago, "todate": today_str, "apikey": api_key})
     df_ptw = pd.DataFrame(data_ptw)
     if not df_ptw.empty:
         if 'feeders' in df_ptw.columns:
-            df_ptw['feeders'] = df_ptw['feeders'].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
-        df_ptw.rename(columns={"ptw_id": "PTW Request ID", "circle_name": "Circle", "feeders": "Feeder", "status": "Status", "start_date": "Start Date", "end_date": "End Date", "request_date": "Request Date"}, inplace=True)
+            df_ptw['feeders'] = df_ptw['feeders'].apply(lambda x: ', '.join(x) if isinstance(x, list) else str(x))
+        df_ptw.rename(columns={
+            "ptw_id": "PTW Request ID", "permit_no": "PTW Request ID", # Handles either key
+            "circle_name": "Circle", "feeders": "Feeder", "current_status": "Status", 
+            "start_time": "Start Date", "end_time": "End Date", "creation_date": "Request Date"
+        }, inplace=True)
     else:
         df_ptw = pd.DataFrame(columns=ptw_cols)
 
-    
-    # 4. Process Data Calculations (Same as before)
+    # 4. Process Data Calculations
     time_cols = ['Start Time', 'End Time']
     for df in [df_today, df_5day]:
         if not df.empty:
-            df['Type of Outage'] = df['Type of Outage'].replace('Power Off By PC', 'Planned Outage')
+            # FIX: Standardize all Outage Type wording so KPI cards find them properly
+            if 'Type of Outage' in df.columns:
+                df['Type of Outage'] = df['Type of Outage'].replace({
+                    'Planned': 'Planned Outage', 
+                    'Unplanned': 'Unplanned Outage', 
+                    'Power Off By PC': 'Planned Outage'
+                })
+
             for col in time_cols: 
                 if col in df.columns: df[col] = pd.to_datetime(df[col], errors='coerce')
             
-            # 👉 THE FIX: Force 'Diff in mins' to be a true number, converting bad data to NaN
+            # Force 'Diff in mins' to be numeric to prevent math crashes from string JSON payloads
             if 'Diff in mins' in df.columns:
                 df['Diff in mins'] = pd.to_numeric(df['Diff in mins'], errors='coerce')
                 
-            df['Status_Calc'] = df['Status'].apply(lambda x: 'Active' if str(x).strip().title() == 'Active' or str(x).strip().title() == 'Open' else 'Closed')
+            if 'Status' in df.columns:
+                df['Status_Calc'] = df['Status'].apply(lambda x: 'Active' if str(x).strip().title() in ['Active', 'Open'] else 'Closed')
             
             def assign_bucket(mins):
                 if pd.isna(mins) or mins < 0: return "Active/Unknown"
@@ -138,7 +156,7 @@ def load_historical_data():
     if os.path.exists('Historical_2026.csv') and os.path.exists('Historical_2025.csv'):
         df_26, df_25 = pd.read_csv('Historical_2026.csv'), pd.read_csv('Historical_2025.csv')
         for df in [df_26, df_25]:
-            df['Type of Outage'] = df['Type of Outage'].replace('Power Off By PC', 'Planned Outage')
+            df['Type of Outage'] = df['Type of Outage'].replace({'Planned': 'Planned Outage', 'Unplanned': 'Unplanned Outage', 'Power Off By PC': 'Planned Outage'})
             df['Outage Date'] = pd.to_datetime(df['Start Time'], errors='coerce').dt.date
         return df_26, df_25
     return pd.DataFrame(), pd.DataFrame()
@@ -276,6 +294,60 @@ with tab3:
                 st.dataframe(repeat_feeders.style.set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
             else:
                 st.success("No feeders had multiple PTWs requested against them in the last 7 days! 🎉")
+
+            st.divider()
+            st.subheader("⏳ Today's PTW Requests (Detailed Breakdown)")
+            
+            # Dynamically grab the start and end columns for math logic
+            start_col_ptw = next((c for c in df_ptw.columns if ('start' in c.lower() or 'from' in c.lower()) and ('date' in c.lower() or 'time' in c.lower())), None)
+            end_col_ptw = next((c for c in df_ptw.columns if ('end' in c.lower() or 'to' in c.lower()) and ('date' in c.lower() or 'time' in c.lower())), None)
+
+            if start_col_ptw and end_col_ptw:
+                today_ptws = ptw_clean.copy()
+                today_ptws[start_col_ptw] = pd.to_datetime(today_ptws[start_col_ptw], dayfirst=True, errors='coerce')
+                today_ptws[end_col_ptw] = pd.to_datetime(today_ptws[end_col_ptw], dayfirst=True, errors='coerce')
+                
+                req_date_col = next((c for c in df_ptw.columns if 'request' in c.lower() and ('date' in c.lower() or 'time' in c.lower())), None)
+                if req_date_col:
+                    today_ptws[req_date_col] = pd.to_datetime(today_ptws[req_date_col], dayfirst=True, errors='coerce')
+                    mask = (today_ptws[start_col_ptw].dt.date == pd.to_datetime(today_str).date()) | \
+                           (today_ptws[req_date_col].dt.date == pd.to_datetime(today_str).date())
+                else:
+                    mask = (today_ptws[start_col_ptw].dt.date == pd.to_datetime(today_str).date())
+                
+                today_ptws = today_ptws[mask]
+                
+                if not today_ptws.empty:
+                    today_ptws['Duration (Hours)'] = (today_ptws[end_col_ptw] - today_ptws[start_col_ptw]).dt.total_seconds() / 3600.0
+                    today_ptws['Duration (Hours)'] = today_ptws['Duration (Hours)'].apply(lambda x: max(x, 0)).round(2)
+                    
+                    def ptw_bucket(hrs):
+                        if pd.isna(hrs): return "Unknown"
+                        if hrs <= 2: return "0-2 Hrs"
+                        elif hrs <= 4: return "2-4 Hrs"
+                        elif hrs <= 8: return "4-8 Hrs"
+                        else: return "Above 8 Hrs"
+                    
+                    today_ptws['Time Bucket'] = today_ptws['Duration (Hours)'].apply(ptw_bucket)
+                    
+                    display_cols_ptw = [feeder_col, start_col_ptw, end_col_ptw, 'Duration (Hours)', 'Time Bucket']
+                    if circle_col: display_cols_ptw.insert(0, circle_col)
+                    
+                    final_today_ptws = today_ptws[display_cols_ptw].dropna(subset=[start_col_ptw]).sort_values(by='Duration (Hours)', ascending=False)
+                    
+                    def highlight_long_ptw(row):
+                        if pd.notna(row['Duration (Hours)']) and row['Duration (Hours)'] > 5:
+                            return ['background-color: rgba(220, 53, 69, 0.15); color: #850000; font-weight: bold'] * len(row)
+                        return [''] * len(row)
+                        
+                    over_5_count = final_today_ptws[final_today_ptws['Duration (Hours)'] > 5][feeder_col].nunique()
+                    st.markdown(f"**Total Feeders under PTW today exceeding 5 Hours:** `{over_5_count}`")
+                    
+                    st.dataframe(final_today_ptws.style.apply(highlight_long_ptw, axis=1).format({'Duration (Hours)': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+                else:
+                    st.info("No PTW requests recorded specifically for today.")
+            else:
+                st.warning("Could not dynamically identify Start and End time columns in the PTW report. Check if End Date is missing from API.")
 
 
 # ==========================================
