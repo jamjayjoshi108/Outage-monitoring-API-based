@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta, timezone
 
 # --- CONFIGURATION ---
-API_KEY = "your_actual_api_key_here"  # ⚠️ Replace this before committing!
+API_KEY = "pdc@12345"  # ⚠️ Replace this before committing!
 OUTAGE_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.OutageEvents"
 PTW_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.PTWRequests"
 
