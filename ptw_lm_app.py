@@ -14,13 +14,20 @@ ZONE_TOTALS = {
 }
 
 def fetch_ptw_data(api_key, start_date, end_date):
-    # Using the existing PTW URL from your main.py
     url = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.getPTWRequests"
     payload = {"fromdate": start_date, "todate": end_date, "apikey": api_key}
+    
     try:
         res = requests.post(url, json=payload, timeout=20)
-        return res.json().get("data", [])
-    except:
+        res.raise_for_status() # Good practice: raises error for 404/500 codes
+        data = res.json()
+        
+        # Safely return the list whether it is wrapped in a dict or not
+        return data if isinstance(data, list) else data.get("data", [])
+        
+    except Exception as e:
+        # Prints the error in Streamlit so it doesn't fail silently next time
+        st.error(f"API Fetch Error: {e}")
         return []
 
 def render_ptw_lm_dashboard():
