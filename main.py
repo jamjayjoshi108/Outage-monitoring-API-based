@@ -3,6 +3,7 @@ import requests
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta, timezone
+from ptw_lm_app import render_ptw_lm_dashboard
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="Utility Operations Command Center", layout="wide")
@@ -718,5 +719,14 @@ def render_dashboard():
 # --- ROUTER LOGIC ---
 if st.session_state.page == 'home':
     render_home()
-else:
+elif st.session_state.page == 'dashboard':
     render_dashboard()
+elif st.session_state.page == 'ptw_app': # New Case
+    render_ptw_lm_dashboard()
+
+# --- Update the Button in render_home() ---
+# Inside the row1_col1 block:
+with row1_col1:
+    if st.button("🛠️ PTW, LM-ALM Application", use_container_width=True):
+        st.session_state.page = 'ptw_app' # Change page state
+        st.rerun()
