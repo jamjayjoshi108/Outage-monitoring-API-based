@@ -267,15 +267,20 @@ def render_home():
     
     st.write("")
     row1_col1, row1_col2, row1_col3 = st.columns(3, gap="large")
+    
     with row1_col1:
+        # Move the logic inside this block
         if st.button("🛠️ PTW, LM-ALM Application", use_container_width=True):
-            st.toast("This module is currently offline or under development.")
+            st.session_state.page = 'ptw_app'
+            st.rerun()
+            
     with row1_col2:
         if st.button("📉 Outage Reduction Plan (ORP)", use_container_width=True):
-            st.toast("This module is currently offline or under development.")
+            st.toast("This module is currently offline.")
+            
     with row1_col3:
         if st.button("🏢 RDSS", use_container_width=True):
-            st.toast("This module is currently offline or under development.")
+            st.toast("This module is currently offline.")
 
     st.write("")
     row2_col1, row2_col2, row2_col3 = st.columns(3, gap="large")
@@ -721,7 +726,7 @@ if st.session_state.page == 'home':
     render_home()
 elif st.session_state.page == 'dashboard':
     render_dashboard()
-elif st.session_state.page == 'ptw_app': # New Case
+elif st.session_state.page == 'ptw_app':
     render_ptw_lm_dashboard()
 
 # --- Update the Button in render_home() ---
