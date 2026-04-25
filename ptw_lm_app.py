@@ -24,24 +24,36 @@ def fetch_ptw_data(api_key, start_date, end_date):
         return []
 
 def render_ptw_lm_dashboard():
-    st.title("🛠️ PTW & LM-ALM Performance Tracker")
+    # 1. Header and Navigation (Placed BEFORE data fetching so it always renders)
+    col_title, col_btn = st.columns([0.85, 0.15])
+    with col_title:
+        st.title("🛠️ PTW & LM-ALM Tracker")
+    with col_btn:
+        st.write("") # Spacing to align button vertically
+        if st.button("⬅️ Home", use_container_width=True):
+            st.session_state.page = 'home'
+            st.rerun()
     
-    # 1. Date Selection for Weekly Cycle
+    # 2. Date Selection for Weekly Cycle
     col1, col2 = st.columns(2)
     with col1:
         start_date = st.date_input("From Date", value=pd.to_datetime("today") - pd.Timedelta(days=7))
     with col2:
         end_date = st.date_input("To Date", value=pd.to_datetime("today"))
 
-    # 2. Data Fetching (Mocking structure based on your scraping logic)
-    raw_data = fetch_ptw_data(st.secrets["API_KEY"], str(start_date), str(end_date))
+    # 3. Data Fetching (Added explicit strftime to ensure correct API payload format)
+    start_str = start_date.strftime("%Y-%m-%d")
+    end_str = end_date.strftime("%Y-%m-%d")
+    raw_data = fetch_ptw_data(st.secrets["API_KEY"], start_str, end_str)
+    
     df = pd.DataFrame(raw_data)
 
+    # If empty, warn and stop rendering the charts, BUT the home button will still be there!
     if df.empty:
-        st.warning("No data found for the selected period.")
+        st.warning(f"No data found for the selected period ({start_str} to {end_str}).")
         return
 
-    # 3. Processing Metrics per Zone
+    # 4. Processing Metrics per Zone
     metrics_data = []
 
     # Row 1: JEs Using PTW
@@ -76,10 +88,10 @@ def render_ptw_lm_dashboard():
             pspcl_shares.append(f"{(val/den):.1%}")
     metrics_data.append(["Share: PSPCL Grids Using PTW / Total PSPCL"] + pspcl_shares)
 
-    # 4. Create Transposed DataFrame
+    # 5. Create Transposed DataFrame
     performance_df = pd.DataFrame(metrics_data, columns=["Metric"] + ZONES)
 
-    # 5. Styling and Display
+    # 6. Styling and Display
     st.subheader(f"Week Performance - {start_date.strftime('%B')}")
     
     # Custom CSS for the "Excel-like" look
@@ -99,7 +111,7 @@ def render_ptw_lm_dashboard():
 
     st.table(performance_df.style.applymap(color_shares))
 
-    # 6. Performance Summary (Text version of Row 16 in image)
+    # 7. Performance Summary
     st.markdown("---")
     st.subheader("Weekly Insights")
     c1, c2 = st.columns(2)
