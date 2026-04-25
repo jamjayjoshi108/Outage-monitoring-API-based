@@ -267,29 +267,36 @@ def render_home():
     
     st.write("")
     row1_col1, row1_col2, row1_col3 = st.columns(3, gap="large")
+    
     with row1_col1:
+        # Updated to navigate to the PTW/LM module
         if st.button("🛠️ PTW, LM-ALM Application", use_container_width=True):
-            st.toast("This module is currently offline or under development.")
+            st.session_state.page = 'ptw_app'
+            st.rerun()
+            
     with row1_col2:
         if st.button("📉 Outage Reduction Plan (ORP)", use_container_width=True):
             st.toast("This module is currently offline or under development.")
+            
     with row1_col3:
         if st.button("🏢 RDSS", use_container_width=True):
             st.toast("This module is currently offline or under development.")
 
     st.write("")
     row2_col1, row2_col2, row2_col3 = st.columns(3, gap="large")
+    
     with row2_col1:
         if st.button("📡 Smart Meter", use_container_width=True):
             st.toast("This module is currently offline or under development.")
+            
     with row2_col2:
         if st.button("🔌 New Connections", use_container_width=True):
             st.toast("This module is currently offline or under development.")
+            
     with row2_col3:
         if st.button("🚨 Outage Monitoring", use_container_width=True):
             st.session_state.page = 'dashboard'
             st.rerun()
-
 
 # ==========================================
 # PAGE 2: MAIN DASHBOARD
@@ -721,12 +728,5 @@ if st.session_state.page == 'home':
     render_home()
 elif st.session_state.page == 'dashboard':
     render_dashboard()
-elif st.session_state.page == 'ptw_app': # New Case
+elif st.session_state.page == 'ptw_app':
     render_ptw_lm_dashboard()
-
-# --- Update the Button in render_home() ---
-# Inside the row1_col1 block:
-with row1_col1:
-    if st.button("🛠️ PTW, LM-ALM Application", use_container_width=True):
-        st.session_state.page = 'ptw_app' # Change page state
-        st.rerun()
