@@ -132,7 +132,9 @@ def load_live_data_from_api():
                 else: return "Above 8 Hrs"
             df['Duration Bucket'] = df['Diff in mins'].apply(assign_bucket)
             
-    return df_today, df_5day, df_ptw
+    # Capture exact time data was fetched
+    fetch_time = datetime.now(IST).strftime('%d %b %Y, %I:%M %p')
+    return df_today, df_5day, df_ptw, fetch_time
 
 @st.cache_data
 def load_historical_data():
@@ -220,7 +222,6 @@ def create_bucket_pivot(df, bucket_order):
 # PAGE 1: HOME (COMMAND CENTER)
 # ==========================================
 def render_home():
-    # Inject CSS specific to the Home Page for large, clean card buttons
     st.markdown("""
         <style>
             .home-title {
@@ -238,7 +239,6 @@ def render_home():
                 font-size: 1.1rem;
                 margin-bottom: 3rem;
             }
-            /* Target Streamlit buttons to make them look like large cards */
             div.stButton > button {
                 height: 90px;
                 font-size: 1.1rem;
@@ -264,7 +264,7 @@ def render_home():
     
     st.write("---")
     
-    st.write("") # Spacer
+    st.write("")
     row1_col1, row1_col2, row1_col3 = st.columns(3, gap="large")
     with row1_col1:
         if st.button("🛠️ PTW, LM-ALM Application", use_container_width=True):
@@ -276,7 +276,7 @@ def render_home():
         if st.button("🏢 RDSS", use_container_width=True):
             st.toast("This module is currently offline or under development.")
 
-    st.write("") # Spacer
+    st.write("")
     row2_col1, row2_col2, row2_col3 = st.columns(3, gap="large")
     with row2_col1:
         if st.button("📡 Smart Meter", use_container_width=True):
@@ -294,8 +294,8 @@ def render_home():
 # PAGE 2: MAIN DASHBOARD
 # ==========================================
 def render_dashboard():
-    # Load data
-    df_today, df_5day, df_ptw = load_live_data_from_api()
+    # Load data (Now extracts the 4th parameter: Last Updated timestamp)
+    df_today, df_5day, df_ptw, last_updated = load_live_data_from_api()
     df_hist_curr, df_hist_ly = load_historical_data()
 
     # Pre-compute Notorious Feeders
@@ -339,22 +339,31 @@ def render_dashboard():
         </style>
     """, unsafe_allow_html=True)
 
-    # Dashboard Header
-    col1, col2 = st.columns([0.80, 0.20])
+    # Dashboard Header with Password Popover and Timestamp
+    col1, col2 = st.columns([0.75, 0.25])
     with col1:
         st.title("⚡ Power Outage Monitoring Dashboard")
     with col2:
         st.write("")
         btn_col1, btn_col2 = st.columns(2)
         with btn_col1:
-            # Revert to Home screen
             if st.button("⬅️ Home", use_container_width=True):
                 st.session_state.page = 'home'
                 st.rerun()
         with btn_col2:
-            if st.button("🔄 Refresh", use_container_width=True):
-                st.cache_data.clear()
-                st.rerun()
+            # Replaced plain button with a popover form
+            with st.popover("🔄 Refresh", use_container_width=True):
+                st.markdown("**Admin Access Required**")
+                pwd = st.text_input("Passcode:", type="password", placeholder="Enter passcode...")
+                if st.button("Confirm Refresh", use_container_width=True):
+                    if pwd == "J@Y":
+                        st.cache_data.clear()
+                        st.rerun()
+                    else:
+                        st.error("Incorrect password.")
+        
+        # Display the dynamic timestamp just underneath the buttons
+        st.markdown(f"<div style='text-align: right; color: #666; font-size: 0.85rem; margin-top: 4px;'>Data Last Updated:<br><b>{last_updated}</b></div>", unsafe_allow_html=True)
 
     tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "📈 YoY Comparison", "🛠️ PTW Frequency"])
 
@@ -522,7 +531,6 @@ def render_dashboard():
 
     # --- TAB 1: ORIGINAL DASHBOARD ---
     with tab1:
-        # Drop "Cancelled" records from live views
         if not df_today.empty:
             valid_today = df_today[~df_today['Status'].astype(str).str.contains('Cancel', case=False, na=False)]
         else:
