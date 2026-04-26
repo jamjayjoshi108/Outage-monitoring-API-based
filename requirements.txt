@@ -11,3 +11,5 @@ openpyxl
 matplotlib
 pydeck
 numpy
+gspread
+google-auth
