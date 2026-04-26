@@ -217,6 +217,18 @@ def load_data_pipeline():
     if not df_all_outages.empty:
         df_all_outages['Start Time'] = pd.to_datetime(df_all_outages['Start Time'], errors='coerce')
         
+        # Calculate Duration Bucket globally for ALL data (CSV + GSheets)
+        if 'Diff in mins' in df_all_outages.columns:
+            df_all_outages['Diff in mins'] = pd.to_numeric(df_all_outages['Diff in mins'], errors='coerce')
+            def assign_bucket(mins):
+                if pd.isna(mins) or mins < 0: return "Active/Unknown"
+                hrs = mins / 60
+                if hrs <= 2: return "Up to 2 Hrs"
+                elif hrs <= 4: return "2-4 Hrs"
+                elif hrs <= 8: return "4-8 Hrs"
+                else: return "Above 8 Hrs"
+            df_all_outages['Duration Bucket'] = df_all_outages['Diff in mins'].apply(assign_bucket)
+            
     return df_all_outages, df_gs_ptw, fetch_time
 
 
@@ -276,7 +288,9 @@ def highlight_delta(val):
     return ''
 
 def create_bucket_pivot(df, bucket_order):
-    if df.empty: return pd.DataFrame(columns=bucket_order + ['Total'])
+    if df.empty or 'Duration Bucket' not in df.columns or 'Circle' not in df.columns: 
+        return pd.DataFrame(columns=bucket_order + ['Total'])
+        
     pivot = pd.crosstab(df['Circle'], df['Duration Bucket'])
     pivot = pivot.reindex(columns=[c for c in bucket_order if c in pivot.columns], fill_value=0)
     pivot['Total'] = pivot.sum(axis=1)
