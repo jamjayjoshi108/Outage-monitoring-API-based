@@ -19,24 +19,29 @@ def fetch_ptw_data(api_key, start_date, end_date):
     
     try:
         res = requests.post(url, json=payload, timeout=20)
-        res.raise_for_status() # Good practice: raises error for 404/500 codes
+        res.raise_for_status() 
         data = res.json()
         
-        # Safely return the list whether it is wrapped in a dict or not
+        # --- DIAGNOSTIC: Print exactly what is sent and received ---
+        with st.expander("🔍 DIAGNOSTIC: Raw API Response", expanded=True):
+            st.write("**Payload Sent:**", payload)
+            st.write("**Server Response:**")
+            st.json(data)
+        # -----------------------------------------------------------
+        
         return data if isinstance(data, list) else data.get("data", [])
         
     except Exception as e:
-        # Prints the error in Streamlit so it doesn't fail silently next time
         st.error(f"API Fetch Error: {e}")
         return []
 
 def render_ptw_lm_dashboard():
-    # 1. Header and Navigation (Placed BEFORE data fetching so it always renders)
+    # 1. Header and Navigation
     col_title, col_btn = st.columns([0.85, 0.15])
     with col_title:
         st.title("🛠️ PTW & LM-ALM Tracker")
     with col_btn:
-        st.write("") # Spacing to align button vertically
+        st.write("") 
         if st.button("⬅️ Home", use_container_width=True):
             st.session_state.page = 'home'
             st.rerun()
@@ -48,16 +53,20 @@ def render_ptw_lm_dashboard():
     with col2:
         end_date = st.date_input("To Date", value=pd.to_datetime("today"))
 
-    # 3. Data Fetching (Added explicit strftime to ensure correct API payload format)
+    # 3. Data Fetching
     start_str = start_date.strftime("%Y-%m-%d")
     end_str = end_date.strftime("%Y-%m-%d")
     raw_data = fetch_ptw_data(st.secrets["API_KEY"], start_str, end_str)
     
     df = pd.DataFrame(raw_data)
 
-    # If empty, warn and stop rendering the charts, BUT the home button will still be there!
+    # --- DIAGNOSTIC: Print dataframe columns if data exists ---
+    if not df.empty:
+        st.info(f"Columns returned by API: {df.columns.tolist()}")
+
+    # If empty, warn and stop rendering the charts
     if df.empty:
-        st.warning(f"No data found for the selected period ({start_str} to {end_str}).")
+        st.warning(f"No data found for the selected period ({start_str} to {end_str}). Check the Diagnostic expander above!")
         return
 
     # 4. Processing Metrics per Zone
