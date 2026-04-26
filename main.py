@@ -642,25 +642,34 @@ def render_dashboard():
 
     # --- TAB 1: ORIGINAL DASHBOARD ---
     with tab1:
-        if not df_today.empty:
+        # 1. Safely filter for Status
+        if not df_today.empty and 'Status' in df_today.columns:
             valid_today = df_today[~df_today['Status'].astype(str).str.contains('Cancel', case=False, na=False)]
         else:
-            valid_today = pd.DataFrame(columns=df_today.columns)
+            valid_today = pd.DataFrame()
             
-        if not df_5day.empty:
+        if not df_5day.empty and 'Status' in df_5day.columns:
             valid_5day = df_5day[~df_5day['Status'].astype(str).str.contains('Cancel', case=False, na=False)]
         else:
-            valid_5day = pd.DataFrame(columns=df_5day.columns)
+            valid_5day = pd.DataFrame()
 
-        fiveday_planned = valid_5day[valid_5day['Type of Outage'] == 'Planned Outage'] 
-        fiveday_popc = valid_5day[valid_5day['Type of Outage'] == 'Power Off By PC'] 
-        fiveday_unplanned = valid_5day[valid_5day['Type of Outage'] == 'Unplanned Outage'] 
+        # 2. Safely filter for Type of Outage (5-Day)
+        if not valid_5day.empty and 'Type of Outage' in valid_5day.columns:
+            fiveday_planned = valid_5day[valid_5day['Type of Outage'] == 'Planned Outage'] 
+            fiveday_popc = valid_5day[valid_5day['Type of Outage'] == 'Power Off By PC'] 
+            fiveday_unplanned = valid_5day[valid_5day['Type of Outage'] == 'Unplanned Outage'] 
+        else:
+            fiveday_planned = fiveday_popc = fiveday_unplanned = pd.DataFrame()
 
         st.header(f"📅 Selected End Date ({pd.to_datetime(end_str).strftime('%d %b %Y')})")
         
-        today_planned = valid_today[valid_today['Type of Outage'] == 'Planned Outage'] 
-        today_popc = valid_today[valid_today['Type of Outage'] == 'Power Off By PC'] 
-        today_unplanned = valid_today[valid_today['Type of Outage'] == 'Unplanned Outage'] 
+        # 3. Safely filter for Type of Outage (Today)
+        if not valid_today.empty and 'Type of Outage' in valid_today.columns:
+            today_planned = valid_today[valid_today['Type of Outage'] == 'Planned Outage'] 
+            today_popc = valid_today[valid_today['Type of Outage'] == 'Power Off By PC'] 
+            today_unplanned = valid_today[valid_today['Type of Outage'] == 'Unplanned Outage'] 
+        else:
+            today_planned = today_popc = today_unplanned = pd.DataFrame()
         
         st.subheader("Outage Summary")
         kpi1, kpi2, kpi3 = st.columns(3)
