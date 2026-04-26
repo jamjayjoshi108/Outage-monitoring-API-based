@@ -44,7 +44,6 @@ def render_ptw_lm_dashboard():
     # 2. Advanced Date Selection (Session State UI)
     today = pd.to_datetime("today").date()
     
-    # Initialize session state for dates if they don't exist (defaults to Current Month)
     if 'ptw_start' not in st.session_state:
         st.session_state.ptw_start = today.replace(day=1)
     if 'ptw_end' not in st.session_state:
@@ -71,8 +70,7 @@ def render_ptw_lm_dashboard():
         st.session_state.ptw_start = (today - pd.DateOffset(months=6)).date()
         st.session_state.ptw_end = today
 
-    # Always-visible Date Inputs
-    # By setting the 'key', these widgets automatically sync with st.session_state
+    # Always-visible Date Inputs syncing with session_state
     c1, c2 = st.columns(2)
     with c1: 
         start_date = st.date_input("From Date", key="ptw_start")
@@ -117,71 +115,79 @@ def render_ptw_lm_dashboard():
     with k3: st.markdown(f'<div class="kpi-card"><div class="kpi-title">Total Grids Using PTW</div><div class="kpi-value">{total_grids_active}</div></div>', unsafe_allow_html=True)
     with k4: st.markdown(f'<div class="kpi-card"><div class="kpi-title">Overall Grid Adoption</div><div class="kpi-value">{grid_adoption_rate:.1%}</div></div>', unsafe_allow_html=True)
 
-    # 4. Processing Metrics per Zone for Table
-    metrics_data = []
-
-    # Row 1: JEs Using PTW
+    # 4. Dictionary-Based Data Processing (Bulletproof column alignment)
     jes = df.groupby('zone_name')['permit_je'].nunique().reindex(ZONES, fill_value=0)
-    metrics_data.append(["JEs Using PTW"] + jes.tolist())
-
-    # Row 2: Share JEs
-    share_jes = [f"{(jes[z] / ZONE_TOTALS[z]['Total JEs']):.1%}" for z in ZONES]
-    metrics_data.append(["Share: JEs Using PTW / Total JEs"] + share_jes)
-
-    # Row 3: Grids Using PTW (Total)
     grids = df.groupby('zone_name')['grid_code'].nunique().reindex(ZONES, fill_value=0)
-    metrics_data.append(["Grids Using PTW"] + grids.tolist())
-
-    # Row 4 & 5: PSPCL and PSTCL Grids
     pspcl = df[df['grid_ownership'] == 'PSPCL'].groupby('zone_name')['grid_code'].nunique().reindex(ZONES, fill_value=0)
-    metrics_data.append(["PSPCL Grids Using PTW"] + pspcl.tolist())
-
     pstcl = df[df['grid_ownership'] == 'PSTCL'].groupby('zone_name')['grid_code'].nunique().reindex(ZONES, fill_value=0)
-    metrics_data.append(["PSTCL Grids Using PTW"] + pstcl.tolist())
 
-    # Row 6 & 7: Shares
-    pspcl_shares, pstcl_shares = [], []
+    # Initialize dictionary with the Metric column first
+    data_dict = {
+        "Metric": [
+            "JEs Using PTW", 
+            "Share: JEs Using PTW / Total JEs", 
+            "Grids Using PTW", 
+            "PSPCL Grids Using PTW", 
+            "PSTCL Grids Using PTW", 
+            "Share: PSPCL Grids Using PTW / Total PSPCL", 
+            "Share: PSTCL Grids Using PTW / Total PSTCL"
+        ]
+    }
+
+    # Populate each zone's specific data into the dictionary
     for z in ZONES:
+        je_den = ZONE_TOTALS[z]['Total JEs']
+        je_share = f"{(jes[z] / je_den):.1%}" if je_den > 0 else "0.0%"
+        
         pspcl_den, pstcl_den = ZONE_TOTALS[z]['PSPCL_G'], ZONE_TOTALS[z]['PSTCL_G']
+        
+        # Exception for South & East Grids
         if z in ['South', 'East']:
             combined_pspcl = pspcl['South'] + pspcl['East']
-            pspcl_shares.append(f"{(combined_pspcl/219):.1%}")
-            combined_pstcl = pstcl['South'] + pstcl['East']
-            pstcl_shares.append(f"{(combined_pstcl/38):.1%}")
-        else:
-            pspcl_shares.append(f"{(pspcl[z]/pspcl_den):.1%}" if pspcl_den > 0 else "0.0%")
-            pspcl_shares.append(f"{(pstcl[z]/pstcl_den):.1%}" if pstcl_den > 0 else "0.0%")
+            pspcl_share = f"{(combined_pspcl / 219):.1%}"
             
-    metrics_data.append(["Share: PSPCL Grids Using PTW / Total PSPCL"] + pspcl_shares)
-    metrics_data.append(["Share: PSTCL Grids Using PTW / Total PSTCL"] + pstcl_shares)
+            combined_pstcl = pstcl['South'] + pstcl['East']
+            pstcl_share = f"{(combined_pstcl / 38):.1%}"
+        else:
+            pspcl_share = f"{(pspcl[z] / pspcl_den):.1%}" if pspcl_den > 0 else "0.0%"
+            pstcl_share = f"{(pstcl[z] / pstcl_den):.1%}" if pstcl_den > 0 else "0.0%"
+            
+        data_dict[z] = [
+            int(jes[z]),
+            je_share,
+            int(grids[z]),
+            int(pspcl[z]),
+            int(pstcl[z]),
+            pspcl_share,
+            pstcl_share
+        ]
 
-    # 5. Create Transposed DataFrame
-    performance_df = pd.DataFrame(metrics_data, columns=["Metric"] + ZONES)
+    # 5. Create DataFrame safely from dictionary mapping
+    performance_df = pd.DataFrame(data_dict)
 
-    # 6. Dynamic Excel-like Conditional Formatting (Red to Green)
+    # 6. Safe Dynamic Excel-like Conditional Formatting
     def apply_gradient(row):
+        # Pre-allocate styles array to guarantee it matches the row length to prevent Styler crashes
+        styles = [''] * len(row)
+        
         if "Share" in str(row.iloc[0]):
             vals = []
-            for val in row[1:]:
-                if isinstance(val, str) and '%' in val:
-                    try:
-                        vals.append(float(val.strip('%')))
-                    except ValueError:
-                        vals.append(None)
-                else:
+            # Extract numerical values specifically from column 1 onwards
+            for val in row.iloc[1:]:
+                try:
+                    vals.append(float(str(val).strip('%')))
+                except ValueError:
                     vals.append(None)
             
             valid_vals = [v for v in vals if v is not None]
             if not valid_vals:
-                return [''] * len(row)
+                return styles
                 
             min_val, max_val = min(valid_vals), max(valid_vals)
-            styles = [''] 
             
-            for val in vals:
-                if val is None:
-                    styles.append('')
-                else:
+            for i, val in enumerate(vals):
+                if val is not None:
+                    # Normalized 0.0 to 1.0 mapping
                     norm = (val - min_val) / (max_val - min_val) if max_val > min_val else 0.5
                     
                     if norm < 0.5:
@@ -190,10 +196,11 @@ def render_ptw_lm_dashboard():
                     else:
                         pct = (norm - 0.5) / 0.5
                         r, g, b = int(255 + (99 - 255) * pct), int(235 + (195 - 235) * pct), int(132 + (132 - 132) * pct)
-                        
-                    styles.append(f'background-color: rgba({r}, {g}, {b}, 0.6); color: #000000; font-weight: 500;')
-            return styles
-        return [''] * len(row)
+                    
+                    # Apply styles starting from index 1 (skipping Metric text)
+                    styles[i + 1] = f'background-color: rgba({r}, {g}, {b}, 0.6); color: #000000; font-weight: 500;'
+                    
+        return styles
 
     # 7. Display the Main Table
     st.write("---")
