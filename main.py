@@ -99,14 +99,29 @@ def sync_gsheets():
     df_gs_outages = pd.DataFrame(ws_outages.get_all_records())
     df_gs_ptw = pd.DataFrame(ws_ptw.get_all_records())
     
-    # Bridge the gap automatically
+    # --- BULLETPROOF SEAM LOGIC ---
     if df_gs_outages.empty:
         df_26, _ = load_historical_data()
-        if not df_26.empty:
-            start_date_str = pd.to_datetime(df_26['Start Time'], errors='coerce').max().strftime("%Y-%m-%d")
+        if not df_26.empty and 'Start Time' in df_26.columns:
+            # Safely extract the last date in the CSV
+            csv_max_date = pd.to_datetime(df_26['Start Time'], errors='coerce').max()
+            
+            if pd.isna(csv_max_date):
+                start_date_str = (datetime.now(IST) - timedelta(days=7)).strftime("%Y-%m-%d")
+            else:
+                # Calculate the gap in days
+                days_gap = (datetime.now(IST).replace(tzinfo=None) - csv_max_date).days
+                
+                # SAFETY NET: If the gap is >7 days, the API will likely timeout again.
+                # Force a 7-day cap to guarantee the API survives and the sheet finally heals.
+                if days_gap > 7:
+                    start_date_str = (datetime.now(IST) - timedelta(days=7)).strftime("%Y-%m-%d")
+                else:
+                    start_date_str = csv_max_date.strftime("%Y-%m-%d")
         else:
-            start_date_str = (datetime.now(IST) - timedelta(days=30)).strftime("%Y-%m-%d")
+            start_date_str = (datetime.now(IST) - timedelta(days=7)).strftime("%Y-%m-%d")
     else:
+        # Standard rolling update once the sheet has data
         start_date_str = (datetime.now(IST) - timedelta(days=7)).strftime("%Y-%m-%d")
         
     end_date_str = datetime.now(IST).strftime("%Y-%m-%d")
@@ -159,6 +174,7 @@ def sync_gsheets():
         combined_ptw = combined_ptw.fillna("").astype(str)
         ws_ptw.clear()
         ws_ptw.update([combined_ptw.columns.values.tolist()] + combined_ptw.values.tolist())
+
 
 def read_gsheets():
     client = get_gspread_client()
