@@ -22,13 +22,6 @@ def fetch_ptw_data(api_key, start_date, end_date):
         res.raise_for_status() 
         data = res.json()
         
-        # --- DIAGNOSTIC: Print exactly what is sent and received ---
-        with st.expander("🔍 DIAGNOSTIC: Raw API Response", expanded=True):
-            st.write("**Payload Sent:**", payload)
-            st.write("**Server Response:**")
-            st.json(data)
-        # -----------------------------------------------------------
-        
         return data if isinstance(data, list) else data.get("data", [])
         
     except Exception as e:
@@ -60,14 +53,17 @@ def render_ptw_lm_dashboard():
     
     df = pd.DataFrame(raw_data)
 
-    # --- DIAGNOSTIC: Print dataframe columns if data exists ---
-    if not df.empty:
-        st.info(f"Columns returned by API: {df.columns.tolist()}")
-
-    # If empty, warn and stop rendering the charts
     if df.empty:
-        st.warning(f"No data found for the selected period ({start_str} to {end_str}). Check the Diagnostic expander above!")
+        st.warning(f"No data found for the selected period ({start_str} to {end_str}).")
         return
+
+    # --- DATA CLEANING & STANDARDIZATION ---
+    # Strip whitespace, remove the word "Zone" if it exists, and title case it (e.g., "BORDER ZONE" -> "Border")
+    df['zone_name'] = df['zone_name'].astype(str).str.replace(' Zone', '', case=False).str.strip().str.title()
+    
+    # Ensure Grid Ownership is uppercase and clean (e.g., " pspcl " -> "PSPCL")
+    if 'grid_ownership' in df.columns:
+        df['grid_ownership'] = df['grid_ownership'].astype(str).str.strip().str.upper()
 
     # 4. Processing Metrics per Zone
     metrics_data = []
@@ -94,15 +90,26 @@ def render_ptw_lm_dashboard():
 
     # Row 6: Share PSPCL (Special logic for South/East)
     pspcl_shares = []
+    pstcl_shares = []
+    
     for z in ZONES:
-        den = ZONE_TOTALS[z]['PSPCL_G']
-        val = pspcl[z]
+        pspcl_den = ZONE_TOTALS[z]['PSPCL_G']
+        pstcl_den = ZONE_TOTALS[z]['PSTCL_G']
+        
         if z in ['South', 'East']:
-            combined_val = pspcl['South'] + pspcl['East']
-            pspcl_shares.append(f"{(combined_val/219):.1%}")
+            # Combine South and East numerators for PSPCL
+            combined_pspcl = pspcl['South'] + pspcl['East']
+            pspcl_shares.append(f"{(combined_pspcl/219):.1%}")
+            
+            # Combine South and East numerators for PSTCL
+            combined_pstcl = pstcl['South'] + pstcl['East']
+            pstcl_shares.append(f"{(combined_pstcl/38):.1%}")
         else:
-            pspcl_shares.append(f"{(val/den):.1%}")
+            pspcl_shares.append(f"{(pspcl[z]/pspcl_den):.1%}" if pspcl_den > 0 else "0.0%")
+            pstcl_shares.append(f"{(pstcl[z]/pstcl_den):.1%}" if pstcl_den > 0 else "0.0%")
+            
     metrics_data.append(["Share: PSPCL Grids Using PTW / Total PSPCL"] + pspcl_shares)
+    metrics_data.append(["Share: PSTCL Grids Using PTW / Total PSTCL"] + pstcl_shares)
 
     # 5. Create Transposed DataFrame
     performance_df = pd.DataFrame(metrics_data, columns=["Metric"] + ZONES)
@@ -110,7 +117,6 @@ def render_ptw_lm_dashboard():
     # 6. Styling and Display
     st.subheader(f"Week Performance - {start_date.strftime('%B')}")
     
-    # Custom CSS for the "Excel-like" look
     st.markdown("""
         <style>
         .ptw-table td { text-align: center !important; }
@@ -121,11 +127,12 @@ def render_ptw_lm_dashboard():
     def color_shares(val):
         if isinstance(val, str) and '%' in val:
             pct = float(val.replace('%', ''))
-            if pct > 30: return 'background-color: #c6efce' # Green for high usage
-            if pct < 15: return 'background-color: #ffc7ce' # Red for low usage
+            if pct > 30: return 'background-color: #c6efce' 
+            if pct < 15: return 'background-color: #ffc7ce' 
         return ''
 
-    st.table(performance_df.style.applymap(color_shares))
+    # FIXED: Replaced applymap() with map() for modern Pandas compatibility
+    st.dataframe(performance_df.style.map(color_shares), hide_index=True, use_container_width=True)
 
     # 7. Performance Summary
     st.markdown("---")
