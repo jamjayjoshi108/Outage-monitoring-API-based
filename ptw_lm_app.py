@@ -21,9 +21,7 @@ def fetch_ptw_data(api_key, start_date, end_date):
         res = requests.post(url, json=payload, timeout=20)
         res.raise_for_status() 
         data = res.json()
-        
         return data if isinstance(data, list) else data.get("data", [])
-        
     except Exception as e:
         st.error(f"API Fetch Error: {e}")
         return []
@@ -39,12 +37,35 @@ def render_ptw_lm_dashboard():
             st.session_state.page = 'home'
             st.rerun()
     
-    # 2. Date Selection for Weekly Cycle
-    col1, col2 = st.columns(2)
-    with col1:
-        start_date = st.date_input("From Date", value=pd.to_datetime("today") - pd.Timedelta(days=7))
-    with col2:
-        end_date = st.date_input("To Date", value=pd.to_datetime("today"))
+    # 2. Advanced Date Selection
+    today = pd.to_datetime("today").date()
+    
+    st.write("---")
+    date_preset = st.radio(
+        "📅 Select Time Period:", 
+        ["Custom Range", "Today", "Current Month", "Last Month", "Last 3 Months", "Last 6 Months"], 
+        index=2, # Defaults to Current Month
+        horizontal=True
+    )
+    
+    if date_preset == "Today":
+        start_date = end_date = today
+    elif date_preset == "Current Month":
+        start_date = today.replace(day=1)
+        end_date = today
+    elif date_preset == "Last Month":
+        end_date = today.replace(day=1) - pd.Timedelta(days=1)
+        start_date = end_date.replace(day=1)
+    elif date_preset == "Last 3 Months":
+        start_date = (today - pd.DateOffset(months=3)).date()
+        end_date = today
+    elif date_preset == "Last 6 Months":
+        start_date = (today - pd.DateOffset(months=6)).date()
+        end_date = today
+    else: # Custom Range
+        c1, c2 = st.columns(2)
+        with c1: start_date = st.date_input("From Date", value=today - pd.Timedelta(days=7))
+        with c2: end_date = st.date_input("To Date", value=today)
 
     # 3. Data Fetching
     start_str = start_date.strftime("%Y-%m-%d")
@@ -57,11 +78,8 @@ def render_ptw_lm_dashboard():
         st.warning(f"No data found for the selected period ({start_str} to {end_str}).")
         return
 
-    # --- DATA CLEANING & STANDARDIZATION ---
-    # Strip whitespace, remove the word "Zone" if it exists, and title case it (e.g., "BORDER ZONE" -> "Border")
+    # --- DATA CLEANING ---
     df['zone_name'] = df['zone_name'].astype(str).str.replace(' Zone', '', case=False).str.strip().str.title()
-    
-    # Ensure Grid Ownership is uppercase and clean (e.g., " pspcl " -> "PSPCL")
     if 'grid_ownership' in df.columns:
         df['grid_ownership'] = df['grid_ownership'].astype(str).str.strip().str.upper()
 
@@ -80,28 +98,20 @@ def render_ptw_lm_dashboard():
     grids = df.groupby('zone_name')['grid_code'].nunique().reindex(ZONES, fill_value=0)
     metrics_data.append(["Grids Using PTW"] + grids.tolist())
 
-    # Row 4: PSPCL Grids
+    # Row 4 & 5: PSPCL and PSTCL Grids
     pspcl = df[df['grid_ownership'] == 'PSPCL'].groupby('zone_name')['grid_code'].nunique().reindex(ZONES, fill_value=0)
     metrics_data.append(["PSPCL Grids Using PTW"] + pspcl.tolist())
 
-    # Row 5: PSTCL Grids
     pstcl = df[df['grid_ownership'] == 'PSTCL'].groupby('zone_name')['grid_code'].nunique().reindex(ZONES, fill_value=0)
     metrics_data.append(["PSTCL Grids Using PTW"] + pstcl.tolist())
 
-    # Row 6: Share PSPCL (Special logic for South/East)
-    pspcl_shares = []
-    pstcl_shares = []
-    
+    # Row 6 & 7: Shares
+    pspcl_shares, pstcl_shares = [], []
     for z in ZONES:
-        pspcl_den = ZONE_TOTALS[z]['PSPCL_G']
-        pstcl_den = ZONE_TOTALS[z]['PSTCL_G']
-        
+        pspcl_den, pstcl_den = ZONE_TOTALS[z]['PSPCL_G'], ZONE_TOTALS[z]['PSTCL_G']
         if z in ['South', 'East']:
-            # Combine South and East numerators for PSPCL
             combined_pspcl = pspcl['South'] + pspcl['East']
             pspcl_shares.append(f"{(combined_pspcl/219):.1%}")
-            
-            # Combine South and East numerators for PSTCL
             combined_pstcl = pstcl['South'] + pstcl['East']
             pstcl_shares.append(f"{(combined_pstcl/38):.1%}")
         else:
@@ -114,32 +124,31 @@ def render_ptw_lm_dashboard():
     # 5. Create Transposed DataFrame
     performance_df = pd.DataFrame(metrics_data, columns=["Metric"] + ZONES)
 
-    # 6. Styling and Display
-    st.subheader(f"Week Performance - {start_date.strftime('%B')}")
+    # 6. Display the Main Table
+    st.write("---")
+    # Dynamic header displaying exact dates selected
+    st.subheader(f"📊 Performance Overview ({start_date.strftime('%d %b %Y')} to {end_date.strftime('%d %b %Y')})")
     
-    st.markdown("""
-        <style>
-        .ptw-table td { text-align: center !important; }
-        .ptw-table th { background-color: #004085 !important; color: white !important; }
-        </style>
-    """, unsafe_allow_html=True)
-
     def color_shares(val):
         if isinstance(val, str) and '%' in val:
             pct = float(val.replace('%', ''))
-            if pct > 30: return 'background-color: #c6efce' 
-            if pct < 15: return 'background-color: #ffc7ce' 
+            if pct >= 30: return 'background-color: #c6efce; color: #006100;' 
+            if pct < 15: return 'background-color: #ffc7ce; color: #9c0006;' 
         return ''
 
-    # FIXED: Replaced applymap() with map() for modern Pandas compatibility
     st.dataframe(performance_df.style.map(color_shares), hide_index=True, use_container_width=True)
 
-    # 7. Performance Summary
-    st.markdown("---")
-    st.subheader("Weekly Insights")
-    c1, c2 = st.columns(2)
-    with c1:
-        st.success("**Trend:** JEs Using PTW is increasing (11.6% vs last week)")
-        st.info("**Trend:** Grids Using PTW is increasing (13.6% vs last week)")
-    with c2:
-        st.error("**Lowest Performer:** East Zone (11.9% JE Share)")
+    # 7. NEW: Visual Insights Section
+    st.write("---")
+    st.subheader("📈 Visual Insights: Volume by Zone")
+    st.caption("Compare the raw volume of JEs and Grids utilizing the PTW system across all zones.")
+    
+    # Create a simple DataFrame for charting
+    chart_df = pd.DataFrame({
+        'Zone': ZONES,
+        'JEs Using PTW': jes.tolist(),
+        'Grids Using PTW': grids.tolist()
+    }).set_index('Zone')
+    
+    # Render native Streamlit bar chart
+    st.bar_chart(chart_df, height=350, use_container_width=True)
