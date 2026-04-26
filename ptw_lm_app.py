@@ -41,35 +41,43 @@ def render_ptw_lm_dashboard():
             st.session_state.page = 'home'
             st.rerun()
     
-    # 2. Advanced Date Selection
+    # 2. Advanced Date Selection (Session State UI)
     today = pd.to_datetime("today").date()
     
+    # Initialize session state for dates if they don't exist (defaults to Current Month)
+    if 'ptw_start' not in st.session_state:
+        st.session_state.ptw_start = today.replace(day=1)
+    if 'ptw_end' not in st.session_state:
+        st.session_state.ptw_end = today
+
     st.write("---")
-    date_preset = st.radio(
-        "📅 Select Time Period:", 
-        ["Custom Range", "Today", "Current Month", "Last Month", "Last 3 Months", "Last 6 Months"], 
-        index=2, # Defaults to Current Month
-        horizontal=True
-    )
+    st.markdown("**📅 Select Time Period**")
     
-    if date_preset == "Today":
-        start_date = end_date = today
-    elif date_preset == "Current Month":
-        start_date = today.replace(day=1)
-        end_date = today
-    elif date_preset == "Last Month":
-        end_date = today.replace(day=1) - pd.Timedelta(days=1)
-        start_date = end_date.replace(day=1)
-    elif date_preset == "Last 3 Months":
-        start_date = (today - pd.DateOffset(months=3)).date()
-        end_date = today
-    elif date_preset == "Last 6 Months":
-        start_date = (today - pd.DateOffset(months=6)).date()
-        end_date = today
-    else: # Custom Range
-        c1, c2 = st.columns(2)
-        with c1: start_date = st.date_input("From Date", value=today - pd.Timedelta(days=7))
-        with c2: end_date = st.date_input("To Date", value=today)
+    # Quick Preset Buttons
+    btn_cols = st.columns(5)
+    if btn_cols[0].button("Today", use_container_width=True):
+        st.session_state.ptw_start = today
+        st.session_state.ptw_end = today
+    if btn_cols[1].button("Current Month", use_container_width=True):
+        st.session_state.ptw_start = today.replace(day=1)
+        st.session_state.ptw_end = today
+    if btn_cols[2].button("Last Month", use_container_width=True):
+        st.session_state.ptw_end = today.replace(day=1) - pd.Timedelta(days=1)
+        st.session_state.ptw_start = st.session_state.ptw_end.replace(day=1)
+    if btn_cols[3].button("Last 3 Months", use_container_width=True):
+        st.session_state.ptw_start = (today - pd.DateOffset(months=3)).date()
+        st.session_state.ptw_end = today
+    if btn_cols[4].button("Last 6 Months", use_container_width=True):
+        st.session_state.ptw_start = (today - pd.DateOffset(months=6)).date()
+        st.session_state.ptw_end = today
+
+    # Always-visible Date Inputs
+    # By setting the 'key', these widgets automatically sync with st.session_state
+    c1, c2 = st.columns(2)
+    with c1: 
+        start_date = st.date_input("From Date", key="ptw_start")
+    with c2: 
+        end_date = st.date_input("To Date", key="ptw_end")
 
     # 3. Data Fetching
     start_str = start_date.strftime("%Y-%m-%d")
@@ -142,7 +150,7 @@ def render_ptw_lm_dashboard():
             pstcl_shares.append(f"{(combined_pstcl/38):.1%}")
         else:
             pspcl_shares.append(f"{(pspcl[z]/pspcl_den):.1%}" if pspcl_den > 0 else "0.0%")
-            pstcl_shares.append(f"{(pstcl[z]/pstcl_den):.1%}" if pstcl_den > 0 else "0.0%")
+            pspcl_shares.append(f"{(pstcl[z]/pstcl_den):.1%}" if pstcl_den > 0 else "0.0%")
             
     metrics_data.append(["Share: PSPCL Grids Using PTW / Total PSPCL"] + pspcl_shares)
     metrics_data.append(["Share: PSTCL Grids Using PTW / Total PSTCL"] + pstcl_shares)
@@ -152,9 +160,7 @@ def render_ptw_lm_dashboard():
 
     # 6. Dynamic Excel-like Conditional Formatting (Red to Green)
     def apply_gradient(row):
-        # Only apply gradient to rows that are percentages ("Share")
         if "Share" in str(row.iloc[0]):
-            # Extract numerical float values from the percentage strings
             vals = []
             for val in row[1:]:
                 if isinstance(val, str) and '%' in val:
@@ -170,16 +176,14 @@ def render_ptw_lm_dashboard():
                 return [''] * len(row)
                 
             min_val, max_val = min(valid_vals), max(valid_vals)
-            styles = [''] # Empty style for the 'Metric' column name
+            styles = [''] 
             
             for val in vals:
                 if val is None:
                     styles.append('')
                 else:
-                    # Calculate position between min and max (0.0 to 1.0)
                     norm = (val - min_val) / (max_val - min_val) if max_val > min_val else 0.5
                     
-                    # Interpolate Red -> Yellow -> Green (Standard Excel Colors)
                     if norm < 0.5:
                         pct = norm / 0.5
                         r, g, b = int(248 + (255 - 248) * pct), int(105 + (235 - 105) * pct), int(107 + (132 - 107) * pct)
@@ -187,11 +191,8 @@ def render_ptw_lm_dashboard():
                         pct = (norm - 0.5) / 0.5
                         r, g, b = int(255 + (99 - 255) * pct), int(235 + (195 - 235) * pct), int(132 + (132 - 132) * pct)
                         
-                    # Apply color with transparency so black text remains readable
                     styles.append(f'background-color: rgba({r}, {g}, {b}, 0.6); color: #000000; font-weight: 500;')
             return styles
-            
-        # Return empty styles for non-percentage rows
         return [''] * len(row)
 
     # 7. Display the Main Table
@@ -205,6 +206,5 @@ def render_ptw_lm_dashboard():
         </style>
     """, unsafe_allow_html=True)
 
-    # Apply the new row-wise gradient function
     styled_df = performance_df.style.apply(apply_gradient, axis=1)
     st.dataframe(styled_df, hide_index=True, use_container_width=True)
