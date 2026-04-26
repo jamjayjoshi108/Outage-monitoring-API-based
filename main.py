@@ -458,23 +458,65 @@ def render_dashboard():
     with col2:
         st.markdown(f"<div style='text-align: right; color: #666; font-size: 0.85rem; margin-top: 4px;'>Database Synced:<br><b>{last_updated}</b></div>", unsafe_allow_html=True)
 
-    # Pre-compute Notorious Feeders
-    if not df_5day.empty:
-        df_5day['Outage Date'] = df_5day['Start Time'].dt.date
-        feeder_days = df_5day.groupby(['Circle', 'Feeder'])['Outage Date'].nunique().reset_index(name='Days with Outages')
-        notorious = feeder_days[feeder_days['Days with Outages'] >= 3]
-
-        feeder_stats = df_5day.groupby(['Circle', 'Feeder']).agg(Total_Events=('Start Time', 'size'), Avg_Mins=('Diff in mins', 'mean'), Total_Mins=('Diff in mins', 'sum')).reset_index()
-        feeder_stats.rename(columns={'Total_Events': 'Total Outage Events'}, inplace=True)
-        feeder_stats['Total Duration (Hours)'] = (feeder_stats['Total_Mins'] / 60).round(2)
-        feeder_stats['Average Duration (Hours)'] = (feeder_stats['Avg_Mins'] / 60).round(2)
-        feeder_stats = feeder_stats.drop(columns=['Avg_Mins', 'Total_Mins'])
-
-        notorious = notorious.merge(feeder_stats, on=['Circle', 'Feeder']).sort_values(by=['Circle', 'Days with Outages', 'Total Outage Events'], ascending=[True, False, False])
-        top_5_notorious = notorious.groupby('Circle').head(5)
-        notorious_set = set(zip(top_5_notorious['Circle'], top_5_notorious['Feeder']))
+    # --- Pre-compute Notorious Feeders (Two-Phased Logic) ---
+    
+    # 1. Enforce Global Rule: Exclude Cancelled Status
+    if not df_all_outages.empty and 'Status' in df_all_outages.columns:
+        valid_outages = df_all_outages[~df_all_outages['Status'].astype(str).str.contains('Cancel', case=False, na=False)].copy()
     else:
-        top_5_notorious = pd.DataFrame(columns=['Circle', 'Feeder'])
+        valid_outages = df_all_outages.copy()
+
+    if not valid_outages.empty:
+        valid_outages['Start Time'] = pd.to_datetime(valid_outages['Start Time'], errors='coerce')
+        valid_outages['DateOnly'] = valid_outages['Start Time'].dt.date
+        valid_outages['Diff in mins'] = pd.to_numeric(valid_outages['Diff in mins'], errors='coerce').fillna(0)
+        
+        notorious_feeders_list = pd.DataFrame()
+
+        if start_date == end_date:
+            # PHASE 1: "Today" -> 3-Day Lookback
+            lookback_date = end_date - pd.Timedelta(days=2)
+            mask = (valid_outages['DateOnly'] >= lookback_date) & (valid_outages['DateOnly'] <= end_date)
+            df_eval = valid_outages[mask].copy()
+            
+            if not df_eval.empty:
+                days_count = df_eval.groupby(['Circle', 'Feeder'])['DateOnly'].nunique().reset_index()
+                notorious_feeders_list = days_count[days_count['DateOnly'] >= 3][['Circle', 'Feeder']]
+        else:
+            # PHASE 2: Date Range -> Weekly Chunking (7-Day blocks)
+            mask = (valid_outages['DateOnly'] >= start_date) & (valid_outages['DateOnly'] <= end_date)
+            df_eval = valid_outages[mask].copy()
+            
+            if not df_eval.empty:
+                # Group by Circle, Feeder, and Calendar Week
+                weekly_counts = df_eval.groupby(['Circle', 'Feeder', pd.Grouper(key='Start Time', freq='W')])['DateOnly'].nunique().reset_index()
+                # Keep feeders that hit 3+ days in ANY single week
+                notorious_feeders_list = weekly_counts[weekly_counts['DateOnly'] >= 3][['Circle', 'Feeder']].drop_duplicates()
+
+        # 3. Calculate Final Stats for identified Notorious Feeders
+        if not notorious_feeders_list.empty:
+            stats = df_eval.merge(notorious_feeders_list, on=['Circle', 'Feeder'])
+            stats = stats.groupby(['Circle', 'Feeder']).agg(
+                Total_Events=('Start Time', 'size'), 
+                Total_Mins=('Diff in mins', 'sum'),
+                Max_Mins=('Diff in mins', 'max') # Added Max_Mins
+            ).reset_index()
+            
+            stats.rename(columns={'Total_Events': 'Total Outage Events'}, inplace=True)
+            stats['Total Duration (Hours)'] = (stats['Total_Mins'] / 60).round(2)
+            stats['Max Duration (Hours)'] = (stats['Max_Mins'] / 60).round(2) # Added Max Duration
+            notorious = stats.drop(columns=['Total_Mins', 'Max_Mins'])
+            
+            # Rank by most events, then longest total duration
+            notorious = notorious.sort_values(by=['Circle', 'Total Outage Events', 'Total Duration (Hours)'], ascending=[True, False, False])
+            
+            top_5_notorious = notorious.groupby('Circle').head(5)
+            notorious_set = set(zip(top_5_notorious['Circle'], top_5_notorious['Feeder']))
+        else:
+            top_5_notorious = pd.DataFrame(columns=['Circle', 'Feeder', 'Total Outage Events', 'Total Duration (Hours)', 'Max Duration (Hours)'])
+            notorious_set = set()
+    else:
+        top_5_notorious = pd.DataFrame(columns=['Circle', 'Feeder', 'Total Outage Events', 'Total Duration (Hours)'])
         notorious_set = set()
 
     tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "📈 YoY Comparison", "🛠️ PTW Frequency"])
@@ -707,26 +749,41 @@ def render_dashboard():
         if selected_notorious_type != "All Types" and not df_dyn.empty: 
             df_dyn = df_dyn[df_dyn['Type of Outage'] == selected_notorious_type]
 
-        if not df_dyn.empty:
-            dyn_days = df_dyn.groupby(['Circle', 'Feeder'])['Outage Date'].nunique().reset_index(name='Days with Outages')
-            dyn_noto = dyn_days[dyn_days['Days with Outages'] >= 3]
+       if not df_dyn.empty:
+            # Apply the max aggregation to the filtered view
+            dyn_stats = df_dyn.groupby(['Circle', 'Feeder']).agg(
+                Total_Events=('Start Time', 'size'), 
+                Total_Mins=('Diff in mins', 'sum'),
+                Max_Mins=('Diff in mins', 'max') # Added Max_Mins
+            ).reset_index()
+            
+            # Merge with the globally calculated notorious feeders list to avoid recalculating
+            if not notorious_feeders_list.empty:
+                dyn_noto = dyn_stats.merge(notorious_feeders_list, on=['Circle', 'Feeder']).drop_duplicates()
+            else:
+                dyn_noto = pd.DataFrame()
 
             if not dyn_noto.empty:
-                dyn_stats = df_dyn.groupby(['Circle', 'Feeder']).agg(Total_Events=('Start Time', 'size'), Avg_Mins=('Diff in mins', 'mean'), Total_Mins=('Diff in mins', 'sum')).reset_index()
-                dyn_stats.rename(columns={'Total_Events': 'Total Outage Events'}, inplace=True)
-                dyn_stats['Total Duration (Hours)'] = (dyn_stats['Total_Mins'] / 60).round(2)
-                dyn_stats['Average Duration (Hours)'] = (dyn_stats['Avg_Mins'] / 60).round(2)
-                dyn_stats = dyn_stats.drop(columns=['Avg_Mins', 'Total_Mins'])
+                dyn_noto.rename(columns={'Total_Events': 'Total Outage Events'}, inplace=True)
+                dyn_noto['Total Duration (Hours)'] = (dyn_noto['Total_Mins'] / 60).round(2)
+                dyn_noto['Max Duration (Hours)'] = (dyn_noto['Max_Mins'] / 60).round(2) # Added Max Duration
+                dyn_noto = dyn_noto.drop(columns=['Total_Mins', 'Max_Mins'])
 
-                dyn_noto = dyn_noto.merge(dyn_stats, on=['Circle', 'Feeder']).sort_values(by=['Circle', 'Days with Outages', 'Total Outage Events'], ascending=[True, False, False])
+                # Sort it
+                dyn_noto = dyn_noto.sort_values(by=['Circle', 'Total Outage Events', 'Total Duration (Hours)'], ascending=[True, False, False])
+                
                 dyn_top5 = dyn_noto.groupby('Circle').head(5)
                 filtered_notorious = dyn_top5[dyn_top5['Circle'] == selected_notorious_circle] if selected_notorious_circle != "All Circles" else dyn_top5
 
                 if not filtered_notorious.empty:
-                    st.dataframe(filtered_notorious.style.format({'Average Duration (Hours)': '{:.2f}', 'Total Duration (Hours)': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
-                else: st.info(f"No notorious feeders found for {selected_notorious_circle} matching the criteria.")
-            else: st.info(f"No notorious feeders identified for {selected_notorious_type}.")
-        else: st.info("No data available for the selected criteria.")
+                    # Update formatting to show Max Duration instead of Average
+                    st.dataframe(filtered_notorious.style.format({'Max Duration (Hours)': '{:.2f}', 'Total Duration (Hours)': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
+                else: 
+                    st.info(f"No notorious feeders found for {selected_notorious_circle} matching the criteria.")
+            else: 
+                st.info(f"No notorious feeders identified for {selected_notorious_type}.")
+        else: 
+            st.info("No data available for the selected criteria.")
 
         st.divider()
         st.header("Comprehensive Circle-wise Breakdown")
