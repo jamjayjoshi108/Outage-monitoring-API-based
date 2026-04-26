@@ -8,17 +8,19 @@ from ptw_lm_app import render_ptw_lm_dashboard
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="Utility Operations Command Center", layout="wide")
 
-# --- INITIALIZE SESSION STATE FOR NAVIGATION & DATES ---
+# --- INITIALIZE SESSION STATE FOR NAVIGATION, DATES & LOADING PHASES ---
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
 today_init = pd.to_datetime("today").date()
 if 'date_preset' not in st.session_state:
-    st.session_state.date_preset = "Current Month"
+    st.session_state.date_preset = "Today"
 if 'start_date' not in st.session_state:
-    st.session_state.start_date = today_init.replace(day=1)
+    st.session_state.start_date = today_init
 if 'end_date' not in st.session_state:
     st.session_state.end_date = today_init
+if 'load_phase' not in st.session_state:
+    st.session_state.load_phase = 0
 
 # --- GLOBAL TABLE HEADER STYLING ---
 HEADER_STYLES = [
@@ -52,8 +54,7 @@ if now_ist.hour < 8: now_ist -= timedelta(days=1)
 # --- DATA LOADING FUNCTIONS ---
 def fetch_from_api(url, payload):
     try:
-        # Increased timeout to accommodate 2-year data payload
-        res = requests.post(url, json=payload, headers={'Content-Type': 'application/json'}, timeout=60)
+        res = requests.post(url, json=payload, headers={'Content-Type': 'application/json'}, timeout=40)
         res.raise_for_status()
         data = res.json()
         return data if isinstance(data, list) else data.get("data", [])
@@ -61,32 +62,64 @@ def fetch_from_api(url, payload):
         st.toast(f"API Fetch warning: {e}")
         return []
 
-@st.cache_data(ttl=3600, show_spinner="Fetching 2-Year historical live data from PSPCL...")
-def load_live_data_from_api():
+def get_phase_dates():
+    floor_date = datetime(2025, 1, 1, tzinfo=IST)
+    today = datetime.now(IST)
+    end_str = today.strftime("%Y-%m-%d")
+    
+    # Phase 0: Last 3 Months
+    c1_start_dt = max(today - timedelta(days=90), floor_date)
+    c1_start = c1_start_dt.strftime("%Y-%m-%d")
+    
+    # Phase 1: Months 3 to 6
+    c2_end_dt = c1_start_dt - timedelta(days=1)
+    c2_start_dt = max(today - timedelta(days=180), floor_date)
+    c2_end = c2_end_dt.strftime("%Y-%m-%d")
+    c2_start = c2_start_dt.strftime("%Y-%m-%d")
+    
+    # Phase 2: Jan 2025 to Month 6
+    c3_end_dt = c2_start_dt - timedelta(days=1)
+    c3_end = c3_end_dt.strftime("%Y-%m-%d")
+    c3_start = "2025-01-01"
+    
+    return [
+        (c1_start, end_str),
+        (c2_start, c2_end) if c2_start_dt <= c2_end_dt else None,
+        (c3_start, c3_end) if floor_date <= c3_end_dt else None
+    ]
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def fetch_api_chunk(start_date_str, end_date_str):
     api_key = st.secrets["API_KEY"]
+    outages = fetch_from_api(OUTAGE_URL, {"fromdate": start_date_str, "todate": end_date_str, "apikey": api_key})
+    ptws = fetch_from_api(PTW_URL, {"fromdate": start_date_str, "todate": end_date_str, "apikey": api_key})
+    return outages, ptws
+
+def load_and_process_current_phases():
+    dates = get_phase_dates()
+    all_outages = []
+    all_ptws = []
+    
+    for i in range(st.session_state.load_phase + 1):
+        if i < len(dates) and dates[i]:
+            o, p = fetch_api_chunk(dates[i][0], dates[i][1])
+            all_outages.extend(o)
+            all_ptws.extend(p)
+            
+    df_range = pd.DataFrame(all_outages)
+    df_ptw = pd.DataFrame(all_ptws)
     
     outage_cols = ["Zone", "Circle", "Feeder", "Type of Outage", "Status", "Start Time", "End Time", "Diff in mins"]
     ptw_cols = ["PTW Request ID", "Permit Number", "Circle", "Feeder", "Status", "Start Date", "Request Date", "End Date"]
     
-    # Calculate 2-year window to current time
-    end_date_str = datetime.now(IST).strftime("%Y-%m-%d")
-    start_date_str = (datetime.now(IST) - timedelta(days=730)).strftime("%Y-%m-%d")
-    
-    # 1. Fetch 2-Year Range Outages
-    data_range = fetch_from_api(OUTAGE_URL, {"fromdate": start_date_str, "todate": end_date_str, "apikey": api_key})
-    df_range = pd.DataFrame(data_range)
     if not df_range.empty:
         df_range.rename(columns={
             "zone_name": "Zone", "circle_name": "Circle", "feeder_name": "Feeder", 
             "outage_type": "Type of Outage", "outage_status": "Status", 
             "start_time": "Start Time", "end_time": "End Time", "duration_minutes": "Diff in mins"
         }, inplace=True)
-    else:
-        df_range = pd.DataFrame(columns=outage_cols)
+    else: df_range = pd.DataFrame(columns=outage_cols)
 
-    # 2. Fetch 2-Year Range PTWs
-    data_ptw = fetch_from_api(PTW_URL, {"fromdate": start_date_str, "todate": end_date_str, "apikey": api_key})
-    df_ptw = pd.DataFrame(data_ptw)
     if not df_ptw.empty:
         if 'feeders' in df_ptw.columns:
             df_ptw['feeders'] = df_ptw['feeders'].apply(lambda x: ', '.join(x) if isinstance(x, list) else str(x))
@@ -95,42 +128,39 @@ def load_live_data_from_api():
             "circle_name": "Circle", "feeders": "Feeder", "current_status": "Status", 
             "start_time": "Start Date", "end_time": "End Date", "creation_date": "Request Date"
         }, inplace=True)
-    else:
-        df_ptw = pd.DataFrame(columns=ptw_cols)
+    else: df_ptw = pd.DataFrame(columns=ptw_cols)
 
-    # 3. Process Data Calculations
+    # Process Data Calculations
     time_cols = ['Start Time', 'End Time']
-    for df in [df_range]:
-        if not df.empty:
-            if 'Type of Outage' in df.columns:
-                df['Raw Outage Type'] = df['Type of Outage'].astype(str).str.strip()
-                def standardize_outage(val):
-                    v_lower = str(val).lower()
-                    if 'power off' in v_lower: return 'Power Off By PC'
-                    if 'unplanned' in v_lower: return 'Unplanned Outage'
-                    if 'planned' in v_lower: return 'Planned Outage'
-                    return val
-                df['Type of Outage'] = df['Raw Outage Type'].apply(standardize_outage)
+    if not df_range.empty:
+        if 'Type of Outage' in df_range.columns:
+            df_range['Raw Outage Type'] = df_range['Type of Outage'].astype(str).str.strip()
+            def standardize_outage(val):
+                v_lower = str(val).lower()
+                if 'power off' in v_lower: return 'Power Off By PC'
+                if 'unplanned' in v_lower: return 'Unplanned Outage'
+                if 'planned' in v_lower: return 'Planned Outage'
+                return val
+            df_range['Type of Outage'] = df_range['Raw Outage Type'].apply(standardize_outage)
 
-            for col in time_cols: 
-                if col in df.columns: df[col] = pd.to_datetime(df[col], errors='coerce')
+        for col in time_cols: 
+            if col in df_range.columns: df_range[col] = pd.to_datetime(df_range[col], errors='coerce')
+        
+        if 'Diff in mins' in df_range.columns:
+            df_range['Diff in mins'] = pd.to_numeric(df_range['Diff in mins'], errors='coerce')
             
-            if 'Diff in mins' in df.columns:
-                df['Diff in mins'] = pd.to_numeric(df['Diff in mins'], errors='coerce')
-                
-            if 'Status' in df.columns:
-                df['Status_Calc'] = df['Status'].apply(lambda x: 'Active' if str(x).strip().title() in ['Active', 'Open'] else 'Closed')
+        if 'Status' in df_range.columns:
+            df_range['Status_Calc'] = df_range['Status'].apply(lambda x: 'Active' if str(x).strip().title() in ['Active', 'Open'] else 'Closed')
+        
+        def assign_bucket(mins):
+            if pd.isna(mins) or mins < 0: return "Active/Unknown"
+            hrs = mins / 60
+            if hrs <= 2: return "Up to 2 Hrs"
+            elif hrs <= 4: return "2-4 Hrs"
+            elif hrs <= 8: return "4-8 Hrs"
+            else: return "Above 8 Hrs"
+        df_range['Duration Bucket'] = df_range['Diff in mins'].apply(assign_bucket)
             
-            def assign_bucket(mins):
-                if pd.isna(mins) or mins < 0: return "Active/Unknown"
-                hrs = mins / 60
-                if hrs <= 2: return "Up to 2 Hrs"
-                elif hrs <= 4: return "2-4 Hrs"
-                elif hrs <= 8: return "4-8 Hrs"
-                else: return "Above 8 Hrs"
-            df['Duration Bucket'] = df['Diff in mins'].apply(assign_bucket)
-            
-    # Capture exact time data was fetched
     fetch_time = datetime.now(IST).strftime('%d %b %Y, %I:%M %p')
     return df_range, df_ptw, fetch_time
 
@@ -338,11 +368,12 @@ def render_dashboard():
                 if st.button("Confirm Refresh", use_container_width=True):
                     if pwd == "J@Y":
                         st.cache_data.clear()
+                        st.session_state.load_phase = 0
                         st.rerun()
                     else:
                         st.error("Incorrect password.")
 
-    # 2. Advanced Date Selection Callback
+    # Advanced Date Selection Callback
     def update_dates():
         preset = st.session_state.date_preset
         t = pd.to_datetime("today").date()
@@ -372,7 +403,7 @@ def render_dashboard():
         horizontal=True
     )
     
-    # Date Pickers always visible and directly mapped to session state
+    # Date Pickers directly mapped to session state
     c1, c2 = st.columns(2)
     start_date = c1.date_input("From Date", key="start_date")
     end_date = c2.date_input("To Date", key="end_date")
@@ -381,15 +412,17 @@ def render_dashboard():
     end_str = end_date.strftime("%Y-%m-%d")
     preset_label = st.session_state.date_preset
 
-    # Load massive 2-year cached data
-    df_all_outages, df_all_ptw, last_updated = load_live_data_from_api()
+    # Load data locally for instant UI updates (Phase 0 blocks here if first run)
+    msg = "Fetching initial dashboard data (Last 3 Months)..." if st.session_state.load_phase == 0 else "Processing active view..."
+    with st.spinner(msg):
+        df_all_outages, df_all_ptw, last_updated = load_and_process_current_phases()
+        
     df_hist_curr, df_hist_ly = load_historical_data()
 
-    # Filter pre-loaded data locally for instant UI updates
     if not df_all_outages.empty:
         df_all_outages['DateOnly'] = pd.to_datetime(df_all_outages['Start Time'], errors='coerce').dt.date
         mask_range = (df_all_outages['DateOnly'] >= start_date) & (df_all_outages['DateOnly'] <= end_date)
-        df_5day = df_all_outages[mask_range].copy() # Keeps the df_5day name for downstream compatibility
+        df_5day = df_all_outages[mask_range].copy() 
         
         mask_today = (df_all_outages['DateOnly'] == end_date)
         df_today = df_all_outages[mask_today].copy()
@@ -406,11 +439,11 @@ def render_dashboard():
     else:
         df_ptw = pd.DataFrame(columns=df_all_ptw.columns)
 
-    # Display the dynamic timestamp
+    # Display dynamic timestamp
     with col2:
         st.markdown(f"<div style='text-align: right; color: #666; font-size: 0.85rem; margin-top: 4px;'>Data Last Updated:<br><b>{last_updated}</b></div>", unsafe_allow_html=True)
 
-    # Pre-compute Notorious Feeders using the instantly filtered range
+    # Pre-compute Notorious Feeders
     if not df_5day.empty:
         df_5day['Outage Date'] = df_5day['Start Time'].dt.date
         feeder_days = df_5day.groupby(['Circle', 'Feeder'])['Outage Date'].nunique().reset_index(name='Days with Outages')
@@ -604,7 +637,6 @@ def render_dashboard():
         else:
             valid_5day = pd.DataFrame(columns=df_5day.columns)
 
-        # Variables mapped from range used by bottom tables
         fiveday_planned = valid_5day[valid_5day['Type of Outage'] == 'Planned Outage'] 
         fiveday_popc = valid_5day[valid_5day['Type of Outage'] == 'Power Off By PC'] 
         fiveday_unplanned = valid_5day[valid_5day['Type of Outage'] == 'Unplanned Outage'] 
@@ -754,6 +786,18 @@ def render_dashboard():
                         st.dataframe(feeder_list_fu[['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']].style.apply(highlight_notorious, axis=1).format({'Diff in Hours': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
                     else: st.dataframe(pd.DataFrame(columns=['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']).style.set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
         else: st.info("No circle data available.")
+
+    # --- BACKGROUND LOADING SYSTEM SYSTEM ---
+    # Placed at the very bottom so it executes after the UI has already rendered
+    dates = get_phase_dates()
+    next_phase = st.session_state.load_phase + 1
+    
+    if next_phase < len(dates):
+        if dates[next_phase]:
+            with st.spinner(f"Optimizing dashboard: Downloading historical data phase {next_phase}/2..."):
+                fetch_api_chunk(dates[next_phase][0], dates[next_phase][1])
+        st.session_state.load_phase = next_phase
+        st.rerun()
 
 # --- ROUTER LOGIC ---
 if st.session_state.page == 'home':
