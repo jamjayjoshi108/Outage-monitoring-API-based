@@ -2,13 +2,15 @@ import os
 import requests
 import streamlit as st
 import pandas as pd
+import gspread
+from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta, timezone
 from ptw_lm_app import render_ptw_lm_dashboard
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="Utility Operations Command Center", layout="wide")
 
-# --- INITIALIZE SESSION STATE FOR NAVIGATION, DATES & LOADING PHASES ---
+# --- INITIALIZE SESSION STATE FOR NAVIGATION & DATES ---
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
@@ -19,8 +21,6 @@ if 'start_date' not in st.session_state:
     st.session_state.start_date = today_init
 if 'end_date' not in st.session_state:
     st.session_state.end_date = today_init
-if 'load_phase' not in st.session_state:
-    st.session_state.load_phase = 0
 
 # --- GLOBAL TABLE HEADER STYLING ---
 HEADER_STYLES = [
@@ -42,16 +42,22 @@ HEADER_STYLES = [
     }
 ]
 
-# --- NEW VERSION 2 API ENDPOINTS ---
+# --- API & DB CONSTANTS ---
 OUTAGE_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.getOutages"
 PTW_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.getPTWRequests"
+SHEET_NAME = "PSPCL_Utility_Data"
 
 # --- IST TIMEZONE SETUP ---
 IST = timezone(timedelta(hours=5, minutes=30))
 now_ist = datetime.now(IST)
 if now_ist.hour < 8: now_ist -= timedelta(days=1)
 
-# --- DATA LOADING FUNCTIONS ---
+# --- GOOGLE SHEETS CONNECTION ---
+def get_gspread_client():
+    scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+    creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scopes)
+    return gspread.authorize(creds)
+
 def fetch_from_api(url, payload):
     try:
         res = requests.post(url, json=payload, headers={'Content-Type': 'application/json'}, timeout=40)
@@ -59,98 +65,102 @@ def fetch_from_api(url, payload):
         data = res.json()
         return data if isinstance(data, list) else data.get("data", [])
     except Exception as e:
-        st.toast(f"API Fetch warning: {e}")
+        print(f"API Fetch Error: {e}")
         return []
 
-def get_phase_dates():
-    floor_date = datetime(2025, 1, 1, tzinfo=IST)
-    today = datetime.now(IST)
-    end_str = today.strftime("%Y-%m-%d")
+def sync_gsheets():
+    client = get_gspread_client()
+    sh = client.open(SHEET_NAME)
+    ws_outages = sh.worksheet("Outages")
+    ws_ptw = sh.worksheet("PTW")
     
-    # Phase 0: Last 3 Months
-    c1_start_dt = max(today - timedelta(days=90), floor_date)
-    c1_start = c1_start_dt.strftime("%Y-%m-%d")
+    df_gs_outages = pd.DataFrame(ws_outages.get_all_records())
+    df_gs_ptw = pd.DataFrame(ws_ptw.get_all_records())
     
-    # Phase 1: Months 3 to 6
-    c2_end_dt = c1_start_dt - timedelta(days=1)
-    c2_start_dt = max(today - timedelta(days=180), floor_date)
-    c2_end = c2_end_dt.strftime("%Y-%m-%d")
-    c2_start = c2_start_dt.strftime("%Y-%m-%d")
-    
-    # Phase 2: Jan 2025 to Month 6
-    c3_end_dt = c2_start_dt - timedelta(days=1)
-    c3_end = c3_end_dt.strftime("%Y-%m-%d")
-    c3_start = "2025-01-01"
-    
-    return [
-        (c1_start, end_str),
-        (c2_start, c2_end) if c2_start_dt <= c2_end_dt else None,
-        (c3_start, c3_end) if floor_date <= c3_end_dt else None
-    ]
-
-@st.cache_data(ttl=3600, show_spinner=False)
-def fetch_api_chunk(start_date_str, end_date_str):
+    # If empty, pull from Jan 1 2025. Otherwise, pull last 7 days to catch status changes.
+    if df_gs_outages.empty:
+        start_date_str = "2025-01-01"
+    else:
+        start_date_str = (datetime.now(IST) - timedelta(days=7)).strftime("%Y-%m-%d")
+        
+    end_date_str = datetime.now(IST).strftime("%Y-%m-%d")
     api_key = st.secrets["API_KEY"]
-    outages = fetch_from_api(OUTAGE_URL, {"fromdate": start_date_str, "todate": end_date_str, "apikey": api_key})
-    ptws = fetch_from_api(PTW_URL, {"fromdate": start_date_str, "todate": end_date_str, "apikey": api_key})
-    return outages, ptws
-
-def load_and_process_current_phases():
-    dates = get_phase_dates()
-    all_outages = []
-    all_ptws = []
     
-    for i in range(st.session_state.load_phase + 1):
-        if i < len(dates) and dates[i]:
-            o, p = fetch_api_chunk(dates[i][0], dates[i][1])
-            all_outages.extend(o)
-            all_ptws.extend(p)
-            
-    df_range = pd.DataFrame(all_outages)
-    df_ptw = pd.DataFrame(all_ptws)
+    raw_outages = fetch_from_api(OUTAGE_URL, {"fromdate": start_date_str, "todate": end_date_str, "apikey": api_key})
+    raw_ptw = fetch_from_api(PTW_URL, {"fromdate": start_date_str, "todate": end_date_str, "apikey": api_key})
     
-    outage_cols = ["Zone", "Circle", "Feeder", "Type of Outage", "Status", "Start Time", "End Time", "Diff in mins"]
-    ptw_cols = ["PTW Request ID", "Permit Number", "Circle", "Feeder", "Status", "Start Date", "Request Date", "End Date"]
+    df_api_outages = pd.DataFrame(raw_outages)
+    df_api_ptw = pd.DataFrame(raw_ptw)
     
-    if not df_range.empty:
-        df_range.rename(columns={
+    # Standardize API Columns
+    if not df_api_outages.empty:
+        df_api_outages.rename(columns={
             "zone_name": "Zone", "circle_name": "Circle", "feeder_name": "Feeder", 
             "outage_type": "Type of Outage", "outage_status": "Status", 
             "start_time": "Start Time", "end_time": "End Time", "duration_minutes": "Diff in mins"
         }, inplace=True)
-    else: df_range = pd.DataFrame(columns=outage_cols)
-
-    if not df_ptw.empty:
-        if 'feeders' in df_ptw.columns:
-            df_ptw['feeders'] = df_ptw['feeders'].apply(lambda x: ', '.join(x) if isinstance(x, list) else str(x))
-        df_ptw.rename(columns={
+        
+    if not df_api_ptw.empty:
+        if 'feeders' in df_api_ptw.columns:
+            df_api_ptw['feeders'] = df_api_ptw['feeders'].apply(lambda x: ', '.join(x) if isinstance(x, list) else str(x))
+        df_api_ptw.rename(columns={
             "ptw_id": "PTW Request ID", "permit_no": "Permit Number", 
             "circle_name": "Circle", "feeders": "Feeder", "current_status": "Status", 
             "start_time": "Start Date", "end_time": "End Date", "creation_date": "Request Date"
         }, inplace=True)
-    else: df_ptw = pd.DataFrame(columns=ptw_cols)
 
-    # Process Data Calculations
+    # Merge & Deduplicate Outages
+    if not df_api_outages.empty:
+        if not df_gs_outages.empty:
+            combined_outages = pd.concat([df_gs_outages, df_api_outages])
+            combined_outages['temp_time'] = pd.to_datetime(combined_outages['Start Time'], errors='coerce')
+            combined_outages = combined_outages.drop_duplicates(subset=['Circle', 'Feeder', 'temp_time'], keep='last').drop(columns=['temp_time'])
+        else:
+            combined_outages = df_api_outages
+            
+        combined_outages = combined_outages.fillna("").astype(str)
+        ws_outages.clear()
+        ws_outages.update([combined_outages.columns.values.tolist()] + combined_outages.values.tolist())
+        
+    # Merge & Deduplicate PTWs
+    if not df_api_ptw.empty:
+        if not df_gs_ptw.empty:
+            combined_ptw = pd.concat([df_gs_ptw, df_api_ptw])
+            combined_ptw = combined_ptw.drop_duplicates(subset=['PTW Request ID'], keep='last')
+        else:
+            combined_ptw = df_api_ptw
+            
+        combined_ptw = combined_ptw.fillna("").astype(str)
+        ws_ptw.clear()
+        ws_ptw.update([combined_ptw.columns.values.tolist()] + combined_ptw.values.tolist())
+
+def read_gsheets():
+    client = get_gspread_client()
+    sh = client.open(SHEET_NAME)
+    
+    df_outages = pd.DataFrame(sh.worksheet("Outages").get_all_records())
+    df_ptw = pd.DataFrame(sh.worksheet("PTW").get_all_records())
+    
     time_cols = ['Start Time', 'End Time']
-    if not df_range.empty:
-        if 'Type of Outage' in df_range.columns:
-            df_range['Raw Outage Type'] = df_range['Type of Outage'].astype(str).str.strip()
+    if not df_outages.empty:
+        if 'Type of Outage' in df_outages.columns:
+            df_outages['Raw Outage Type'] = df_outages['Type of Outage'].astype(str).str.strip()
             def standardize_outage(val):
                 v_lower = str(val).lower()
                 if 'power off' in v_lower: return 'Power Off By PC'
                 if 'unplanned' in v_lower: return 'Unplanned Outage'
                 if 'planned' in v_lower: return 'Planned Outage'
                 return val
-            df_range['Type of Outage'] = df_range['Raw Outage Type'].apply(standardize_outage)
+            df_outages['Type of Outage'] = df_outages['Raw Outage Type'].apply(standardize_outage)
 
         for col in time_cols: 
-            if col in df_range.columns: df_range[col] = pd.to_datetime(df_range[col], errors='coerce')
+            if col in df_outages.columns: df_outages[col] = pd.to_datetime(df_outages[col], errors='coerce')
         
-        if 'Diff in mins' in df_range.columns:
-            df_range['Diff in mins'] = pd.to_numeric(df_range['Diff in mins'], errors='coerce')
+        if 'Diff in mins' in df_outages.columns:
+            df_outages['Diff in mins'] = pd.to_numeric(df_outages['Diff in mins'], errors='coerce')
             
-        if 'Status' in df_range.columns:
-            df_range['Status_Calc'] = df_range['Status'].apply(lambda x: 'Active' if str(x).strip().title() in ['Active', 'Open'] else 'Closed')
+        if 'Status' in df_outages.columns:
+            df_outages['Status_Calc'] = df_outages['Status'].apply(lambda x: 'Active' if str(x).strip().title() in ['Active', 'Open'] else 'Closed')
         
         def assign_bucket(mins):
             if pd.isna(mins) or mins < 0: return "Active/Unknown"
@@ -159,10 +169,19 @@ def load_and_process_current_phases():
             elif hrs <= 4: return "2-4 Hrs"
             elif hrs <= 8: return "4-8 Hrs"
             else: return "Above 8 Hrs"
-        df_range['Duration Bucket'] = df_range['Diff in mins'].apply(assign_bucket)
-            
+        df_outages['Duration Bucket'] = df_outages['Diff in mins'].apply(assign_bucket)
+        
     fetch_time = datetime.now(IST).strftime('%d %b %Y, %I:%M %p')
-    return df_range, df_ptw, fetch_time
+    return df_outages, df_ptw, fetch_time
+
+@st.cache_data(ttl=900, show_spinner="Syncing real-time database via PSPCL API...")
+def load_data_pipeline():
+    try:
+        sync_gsheets()
+    except Exception as e:
+        print(f"Background Sync failed, loading from Google Sheets cache: {e}")
+        pass
+    return read_gsheets()
 
 @st.cache_data
 def load_historical_data():
@@ -368,7 +387,6 @@ def render_dashboard():
                 if st.button("Confirm Refresh", use_container_width=True):
                     if pwd == "J@Y":
                         st.cache_data.clear()
-                        st.session_state.load_phase = 0
                         st.rerun()
                     else:
                         st.error("Incorrect password.")
@@ -412,11 +430,8 @@ def render_dashboard():
     end_str = end_date.strftime("%Y-%m-%d")
     preset_label = st.session_state.date_preset
 
-    # Load data locally for instant UI updates (Phase 0 blocks here if first run)
-    msg = "Fetching initial dashboard data (Last 3 Months)..." if st.session_state.load_phase == 0 else "Processing active view..."
-    with st.spinner(msg):
-        df_all_outages, df_all_ptw, last_updated = load_and_process_current_phases()
-        
+    # --- INITIATE DATA PIPELINE ---
+    df_all_outages, df_all_ptw, last_updated = load_data_pipeline()
     df_hist_curr, df_hist_ly = load_historical_data()
 
     if not df_all_outages.empty:
@@ -441,7 +456,7 @@ def render_dashboard():
 
     # Display dynamic timestamp
     with col2:
-        st.markdown(f"<div style='text-align: right; color: #666; font-size: 0.85rem; margin-top: 4px;'>Data Last Updated:<br><b>{last_updated}</b></div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: right; color: #666; font-size: 0.85rem; margin-top: 4px;'>Database Synced:<br><b>{last_updated}</b></div>", unsafe_allow_html=True)
 
     # Pre-compute Notorious Feeders
     if not df_5day.empty:
@@ -787,18 +802,6 @@ def render_dashboard():
                     else: st.dataframe(pd.DataFrame(columns=['Outage Date', 'Start Time', 'Feeder', 'Diff in Hours', 'Duration Bucket']).style.set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
         else: st.info("No circle data available.")
 
-    # --- BACKGROUND LOADING SYSTEM SYSTEM ---
-    # Placed at the very bottom so it executes after the UI has already rendered
-    dates = get_phase_dates()
-    next_phase = st.session_state.load_phase + 1
-    
-    if next_phase < len(dates):
-        if dates[next_phase]:
-            with st.spinner(f"Optimizing dashboard: Downloading historical data phase {next_phase}/2..."):
-                fetch_api_chunk(dates[next_phase][0], dates[next_phase][1])
-        st.session_state.load_phase = next_phase
-        st.rerun()
-
 # --- ROUTER LOGIC ---
 if st.session_state.page == 'home':
     render_home()
@@ -806,7 +809,8 @@ elif st.session_state.page == 'dashboard':
     render_dashboard()
 elif st.session_state.page == 'ptw_app':
     render_ptw_lm_dashboard()
-
+# =========================================================================================================================
+# V1
 # =========================================================================================================================
 
 # import os
