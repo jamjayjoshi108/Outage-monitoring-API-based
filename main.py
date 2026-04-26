@@ -45,7 +45,7 @@ HEADER_STYLES = [
 # --- API & DB CONSTANTS ---
 OUTAGE_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.getOutages"
 PTW_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.getPTWRequests"
-SHEET_NAME = "PSPCL_Utility_Data"
+SHEET_NAME = "Streamlit Outage Monitoring Dashboard database"
 
 # --- IST TIMEZONE SETUP ---
 IST = timezone(timedelta(hours=5, minutes=30))
