@@ -36,14 +36,10 @@ HEADER_STYLES = [
 OUTAGE_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.getOutages"
 PTW_URL = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.getPTWRequests"
 
-# --- IST TIMEZONE & DATE SETUP ---
+# --- IST TIMEZONE SETUP ---
 IST = timezone(timedelta(hours=5, minutes=30))
 now_ist = datetime.now(IST)
 if now_ist.hour < 8: now_ist -= timedelta(days=1)
-
-today_str = now_ist.strftime("%Y-%m-%d")
-five_days_ago = (now_ist - timedelta(days=5)).strftime("%Y-%m-%d")
-seven_days_ago = (now_ist - timedelta(days=7)).strftime("%Y-%m-%d")
 
 # --- DATA LOADING FUNCTIONS ---
 def fetch_from_api(url, payload):
@@ -57,14 +53,14 @@ def fetch_from_api(url, payload):
         return []
 
 @st.cache_data(ttl=900, show_spinner="Fetching live data from PSPCL...")
-def load_live_data_from_api():
+def load_live_data_from_api(start_date_str, end_date_str):
     api_key = st.secrets["API_KEY"]
     
     outage_cols = ["Zone", "Circle", "Feeder", "Type of Outage", "Status", "Start Time", "End Time", "Diff in mins"]
     ptw_cols = ["PTW Request ID", "Permit Number", "Circle", "Feeder", "Status", "Start Date", "Request Date", "End Date"]
     
-    # 1. Fetch Today's Outages
-    data_today = fetch_from_api(OUTAGE_URL, {"fromdate": today_str, "todate": today_str, "apikey": api_key})
+    # 1. Fetch Today's/End Date Outages (For the single day KPIs)
+    data_today = fetch_from_api(OUTAGE_URL, {"fromdate": end_date_str, "todate": end_date_str, "apikey": api_key})
     df_today = pd.DataFrame(data_today)
     if not df_today.empty:
         df_today.rename(columns={
@@ -75,20 +71,20 @@ def load_live_data_from_api():
     else:
         df_today = pd.DataFrame(columns=outage_cols)
 
-    # 2. Fetch 5-Day Outages
-    data_5day = fetch_from_api(OUTAGE_URL, {"fromdate": five_days_ago, "todate": today_str, "apikey": api_key})
-    df_5day = pd.DataFrame(data_5day)
-    if not df_5day.empty:
-        df_5day.rename(columns={
+    # 2. Fetch Selected Range Outages (Replacing 5-Day)
+    data_range = fetch_from_api(OUTAGE_URL, {"fromdate": start_date_str, "todate": end_date_str, "apikey": api_key})
+    df_range = pd.DataFrame(data_range)
+    if not df_range.empty:
+        df_range.rename(columns={
             "zone_name": "Zone", "circle_name": "Circle", "feeder_name": "Feeder", 
             "outage_type": "Type of Outage", "outage_status": "Status", 
             "start_time": "Start Time", "end_time": "End Time", "duration_minutes": "Diff in mins"
         }, inplace=True)
     else:
-        df_5day = pd.DataFrame(columns=outage_cols)
+        df_range = pd.DataFrame(columns=outage_cols)
 
-    # 3. Fetch 7-Day PTWs 
-    data_ptw = fetch_from_api(PTW_URL, {"fromdate": seven_days_ago, "todate": today_str, "apikey": api_key})
+    # 3. Fetch Selected Range PTWs (Replacing 7-Day) 
+    data_ptw = fetch_from_api(PTW_URL, {"fromdate": start_date_str, "todate": end_date_str, "apikey": api_key})
     df_ptw = pd.DataFrame(data_ptw)
     if not df_ptw.empty:
         if 'feeders' in df_ptw.columns:
@@ -103,7 +99,7 @@ def load_live_data_from_api():
 
     # 4. Process Data Calculations
     time_cols = ['Start Time', 'End Time']
-    for df in [df_today, df_5day]:
+    for df in [df_today, df_range]:
         if not df.empty:
             if 'Type of Outage' in df.columns:
                 df['Raw Outage Type'] = df['Type of Outage'].astype(str).str.strip()
@@ -135,7 +131,7 @@ def load_live_data_from_api():
             
     # Capture exact time data was fetched
     fetch_time = datetime.now(IST).strftime('%d %b %Y, %I:%M %p')
-    return df_today, df_5day, df_ptw, fetch_time
+    return df_today, df_range, df_ptw, fetch_time
 
 @st.cache_data
 def load_historical_data():
@@ -269,7 +265,6 @@ def render_home():
     row1_col1, row1_col2, row1_col3 = st.columns(3, gap="large")
     
     with row1_col1:
-        # Updated to navigate to the PTW/LM module
         if st.button("🛠️ PTW, LM-ALM Application", use_container_width=True):
             st.session_state.page = 'ptw_app'
             st.rerun()
@@ -302,29 +297,6 @@ def render_home():
 # PAGE 2: MAIN DASHBOARD
 # ==========================================
 def render_dashboard():
-    # Load data (Now extracts the 4th parameter: Last Updated timestamp)
-    df_today, df_5day, df_ptw, last_updated = load_live_data_from_api()
-    df_hist_curr, df_hist_ly = load_historical_data()
-
-    # Pre-compute Notorious Feeders
-    if not df_5day.empty:
-        df_5day['Outage Date'] = df_5day['Start Time'].dt.date
-        feeder_days = df_5day.groupby(['Circle', 'Feeder'])['Outage Date'].nunique().reset_index(name='Days with Outages')
-        notorious = feeder_days[feeder_days['Days with Outages'] >= 3]
-
-        feeder_stats = df_5day.groupby(['Circle', 'Feeder']).agg(Total_Events=('Start Time', 'size'), Avg_Mins=('Diff in mins', 'mean'), Total_Mins=('Diff in mins', 'sum')).reset_index()
-        feeder_stats.rename(columns={'Total_Events': 'Total Outage Events'}, inplace=True)
-        feeder_stats['Total Duration (Hours)'] = (feeder_stats['Total_Mins'] / 60).round(2)
-        feeder_stats['Average Duration (Hours)'] = (feeder_stats['Avg_Mins'] / 60).round(2)
-        feeder_stats = feeder_stats.drop(columns=['Avg_Mins', 'Total_Mins'])
-
-        notorious = notorious.merge(feeder_stats, on=['Circle', 'Feeder']).sort_values(by=['Circle', 'Days with Outages', 'Total Outage Events'], ascending=[True, False, False])
-        top_5_notorious = notorious.groupby('Circle').head(5)
-        notorious_set = set(zip(top_5_notorious['Circle'], top_5_notorious['Feeder']))
-    else:
-        top_5_notorious = pd.DataFrame(columns=['Circle', 'Feeder'])
-        notorious_set = set()
-
     # Apply Dashboard styling
     st.markdown("""
         <style>
@@ -359,7 +331,6 @@ def render_dashboard():
                 st.session_state.page = 'home'
                 st.rerun()
         with btn_col2:
-            # Replaced plain button with a popover form
             with st.popover("🔄 Refresh", use_container_width=True):
                 st.markdown("**Admin Access Required**")
                 pwd = st.text_input("Passcode:", type="password", placeholder="Enter passcode...")
@@ -369,19 +340,76 @@ def render_dashboard():
                         st.rerun()
                     else:
                         st.error("Incorrect password.")
-        
-        # Display the dynamic timestamp just underneath the buttons
+
+    # 2. Advanced Date Selection (Inserted Here)
+    today = pd.to_datetime("today").date()
+    
+    st.write("---")
+    date_preset = st.radio(
+        "📅 Select Time Period:", 
+        ["Custom Range", "Today", "Current Month", "Last Month", "Last 3 Months", "Last 6 Months"], 
+        index=2, # Defaults to Current Month
+        horizontal=True
+    )
+    
+    if date_preset == "Today":
+        start_date = end_date = today
+    elif date_preset == "Current Month":
+        start_date = today.replace(day=1)
+        end_date = today
+    elif date_preset == "Last Month":
+        end_date = today.replace(day=1) - pd.Timedelta(days=1)
+        start_date = end_date.replace(day=1)
+    elif date_preset == "Last 3 Months":
+        start_date = (today - pd.DateOffset(months=3)).date()
+        end_date = today
+    elif date_preset == "Last 6 Months":
+        start_date = (today - pd.DateOffset(months=6)).date()
+        end_date = today
+    else: # Custom Range
+        c1, c2 = st.columns(2)
+        with c1: start_date = st.date_input("From Date", value=today - pd.Timedelta(days=7))
+        with c2: end_date = st.date_input("To Date", value=today)
+
+    start_str = start_date.strftime("%Y-%m-%d")
+    end_str = end_date.strftime("%Y-%m-%d")
+
+    # Load data dynamically based on selection
+    df_today, df_5day, df_ptw, last_updated = load_live_data_from_api(start_str, end_str)
+    df_hist_curr, df_hist_ly = load_historical_data()
+
+    # Display the dynamic timestamp
+    with col2:
         st.markdown(f"<div style='text-align: right; color: #666; font-size: 0.85rem; margin-top: 4px;'>Data Last Updated:<br><b>{last_updated}</b></div>", unsafe_allow_html=True)
+
+    # Pre-compute Notorious Feeders (using the selected range data now in df_5day)
+    if not df_5day.empty:
+        df_5day['Outage Date'] = df_5day['Start Time'].dt.date
+        feeder_days = df_5day.groupby(['Circle', 'Feeder'])['Outage Date'].nunique().reset_index(name='Days with Outages')
+        notorious = feeder_days[feeder_days['Days with Outages'] >= 3]
+
+        feeder_stats = df_5day.groupby(['Circle', 'Feeder']).agg(Total_Events=('Start Time', 'size'), Avg_Mins=('Diff in mins', 'mean'), Total_Mins=('Diff in mins', 'sum')).reset_index()
+        feeder_stats.rename(columns={'Total_Events': 'Total Outage Events'}, inplace=True)
+        feeder_stats['Total Duration (Hours)'] = (feeder_stats['Total_Mins'] / 60).round(2)
+        feeder_stats['Average Duration (Hours)'] = (feeder_stats['Avg_Mins'] / 60).round(2)
+        feeder_stats = feeder_stats.drop(columns=['Avg_Mins', 'Total_Mins'])
+
+        notorious = notorious.merge(feeder_stats, on=['Circle', 'Feeder']).sort_values(by=['Circle', 'Days with Outages', 'Total Outage Events'], ascending=[True, False, False])
+        top_5_notorious = notorious.groupby('Circle').head(5)
+        notorious_set = set(zip(top_5_notorious['Circle'], top_5_notorious['Feeder']))
+    else:
+        top_5_notorious = pd.DataFrame(columns=['Circle', 'Feeder'])
+        notorious_set = set()
 
     tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "📈 YoY Comparison", "🛠️ PTW Frequency"])
 
     # --- TAB 3: PTW FREQUENCY ---
     with tab3:
-        st.header("🛠️ PTW Frequency Tracker (Last 7 Days)")
-        st.markdown("Identifies specific feeders that had a Permit to Work (PTW) taken against them **two or more times** in separate requests over the last 7 days.")
+        st.header(f"🛠️ PTW Frequency Tracker ({date_preset})")
+        st.markdown(f"Identifies specific feeders that had a Permit to Work (PTW) taken against them **two or more times** in separate requests over the selected period.")
 
         if df_ptw.empty:
-            st.info("No PTW data found for the last 7 days.")
+            st.info("No PTW data found for the selected period.")
         else:
             ptw_col = next((c for c in df_ptw.columns if 'ptw' in c.lower() or 'request' in c.lower() or 'id' in c.lower()), None)
             feeder_col = next((c for c in df_ptw.columns if 'feeder' in c.lower()), None)
@@ -411,7 +439,7 @@ def render_dashboard():
                 repeat_feeders = repeat_feeders.rename(columns={'Unique_PTWs': 'PTW Request Count', 'PTW_IDs': 'Associated PTW Request Numbers'})
 
                 kpi1, kpi2 = st.columns(2)
-                with kpi1: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Active PTW Requests</div><div class="kpi-value">{df_ptw[ptw_col].nunique()}</div></div><div class="kpi-subtext"><span class="status-badge">Last 7 Days</span></div></div>', unsafe_allow_html=True)
+                with kpi1: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Total Active PTW Requests</div><div class="kpi-value">{df_ptw[ptw_col].nunique()}</div></div><div class="kpi-subtext"><span class="status-badge">Selected Period</span></div></div>', unsafe_allow_html=True)
                 with kpi2: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Feeders with Multiple PTWs</div><div class="kpi-value">{len(repeat_feeders)}</div></div><div class="kpi-subtext"><span class="status-badge" style="background-color: #D32F2F;">🔴 Needs Review</span></div></div>', unsafe_allow_html=True)
 
                 st.divider()
@@ -419,10 +447,10 @@ def render_dashboard():
                 if not repeat_feeders.empty:
                     st.dataframe(repeat_feeders.style.set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
                 else:
-                    st.success("No feeders had multiple PTWs requested against them in the last 7 days! 🎉")
+                    st.success("No feeders had multiple PTWs requested against them in the selected period! 🎉")
 
                 st.divider()
-                st.subheader("⏳ Today's PTW Requests (Detailed Breakdown)")
+                st.subheader("⏳ Specific Day PTW Requests (Detailed Breakdown)")
                 
                 start_col_ptw = next((c for c in df_ptw.columns if ('start' in c.lower() or 'from' in c.lower()) and ('date' in c.lower() or 'time' in c.lower())), None)
                 end_col_ptw = next((c for c in df_ptw.columns if ('end' in c.lower() or 'to' in c.lower()) and ('date' in c.lower() or 'time' in c.lower())), None)
@@ -435,10 +463,10 @@ def render_dashboard():
                     req_date_col = next((c for c in df_ptw.columns if 'request' in c.lower() and ('date' in c.lower() or 'time' in c.lower())), None)
                     if req_date_col:
                         today_ptws[req_date_col] = pd.to_datetime(today_ptws[req_date_col], dayfirst=True, errors='coerce')
-                        mask = (today_ptws[start_col_ptw].dt.date == pd.to_datetime(today_str).date()) | \
-                               (today_ptws[req_date_col].dt.date == pd.to_datetime(today_str).date())
+                        mask = (today_ptws[start_col_ptw].dt.date == pd.to_datetime(end_str).date()) | \
+                               (today_ptws[req_date_col].dt.date == pd.to_datetime(end_str).date())
                     else:
-                        mask = (today_ptws[start_col_ptw].dt.date == pd.to_datetime(today_str).date())
+                        mask = (today_ptws[start_col_ptw].dt.date == pd.to_datetime(end_str).date())
                     
                     today_ptws = today_ptws[mask]
                     
@@ -466,11 +494,11 @@ def render_dashboard():
                             return [''] * len(row)
                             
                         over_5_count = final_today_ptws[final_today_ptws['Duration (Hours)'] > 5][feeder_col].nunique()
-                        st.markdown(f"**Total Feeders under PTW today exceeding 5 Hours:** `{over_5_count}`")
+                        st.markdown(f"**Total Feeders under PTW on {end_str} exceeding 5 Hours:** `{over_5_count}`")
                         
                         st.dataframe(final_today_ptws.style.apply(highlight_long_ptw, axis=1).format({'Duration (Hours)': '{:.2f}'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
                     else:
-                        st.info("No PTW requests recorded specifically for today.")
+                        st.info(f"No PTW requests recorded specifically for {end_str}.")
                 else:
                     st.warning("Could not dynamically identify Start and End time columns in the PTW report. Check if End Date is missing from API.")
 
@@ -481,26 +509,27 @@ def render_dashboard():
         if df_hist_curr.empty or df_hist_ly.empty:
             st.error("Historical Master Data (Historical_2025.csv & Historical_2026.csv) not found in directory.")
         else:
-            timeframe_options = {
-                "March (Entire Month)": (("2026-03-01", "2026-03-31"), ("2025-03-01", "2025-03-31")),
-                "1st Apr to 7th Apr": (("2026-04-01", "2026-04-07"), ("2025-04-01", "2025-04-07")),
-                "8th Apr to 14th Apr": (("2026-04-08", "2026-04-14"), ("2025-04-08", "2025-04-14")),
-                "15th Apr to 22nd Apr": (("2026-04-15", "2026-04-22"), ("2025-04-15", "2025-04-22")),
-                "1st Apr to 23rd Apr": (("2026-04-01", "2026-04-23"), ("2025-04-01", "2025-04-23"))
-            }
-
-            selected_tf = st.radio("Select Comparison Period:", list(timeframe_options.keys()), horizontal=True)
+            # Display Selected Period Dynamically
+            st.markdown(f"**Comparing Period:** {start_date.strftime('%d %b %Y')} to {end_date.strftime('%d %b %Y')}")
             st.divider()
 
-            curr_bounds, ly_bounds = timeframe_options[selected_tf]
+            # Dynamic LY Calculation (Handles leap years gracefully)
+            def get_ly_date(d):
+                try:
+                    return d.replace(year=d.year - 1)
+                except ValueError:
+                    return d.replace(year=d.year - 1, day=28)
+
+            ly_start = get_ly_date(start_date)
+            ly_end = get_ly_date(end_date)
             
-            mask_curr = (df_hist_curr['Outage Date'] >= pd.to_datetime(curr_bounds[0]).date()) & (df_hist_curr['Outage Date'] <= pd.to_datetime(curr_bounds[1]).date())
+            mask_curr = (df_hist_curr['Outage Date'] >= start_date) & (df_hist_curr['Outage Date'] <= end_date)
             filtered_curr = df_hist_curr[mask_curr]
             
-            mask_ly = (df_hist_ly['Outage Date'] >= pd.to_datetime(ly_bounds[0]).date()) & (df_hist_ly['Outage Date'] <= pd.to_datetime(ly_bounds[1]).date())
+            mask_ly = (df_hist_ly['Outage Date'] >= ly_start) & (df_hist_ly['Outage Date'] <= ly_end)
             filtered_ly = df_hist_ly[mask_ly]
 
-            st.markdown(f"### 📍 1. Zone-wise Distribution ({selected_tf})")
+            st.markdown(f"### 📍 1. Zone-wise Distribution")
             st.caption("Includes total counts, total hours, and average hours. Click any row to drill down.")
             
             yoy_zone = generate_yoy_dist_expanded(filtered_curr, filtered_ly, 'Zone')
@@ -552,7 +581,7 @@ def render_dashboard():
         col_left, col_right = st.columns(2, gap="large")
 
         with col_left:
-            st.header(f"📅 Today's Outages ({now_ist.strftime('%d %b %Y')})")
+            st.header(f"📅 Selected End Date ({pd.to_datetime(end_str).strftime('%d %b %Y')})")
             
             today_planned = valid_today[valid_today['Type of Outage'] == 'Planned Outage'] 
             today_popc = valid_today[valid_today['Type of Outage'] == 'Power Off By PC'] 
@@ -571,7 +600,7 @@ def render_dashboard():
                 st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Unplanned Outages</div><div class="kpi-value">{len(today_unplanned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_u}</span> <span class="status-badge">🟢 Closed: {closed_u}</span></div></div>', unsafe_allow_html=True)
 
             st.divider()
-            st.subheader("Zone-wise Distribution (Today)")
+            st.subheader("Zone-wise Distribution")
             if not valid_today.empty:
                 zone_today = valid_today.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
                 for col in ['Planned Outage', 'Power Off By PC', 'Unplanned Outage']:
@@ -580,23 +609,23 @@ def render_dashboard():
                 
                 styled_zone_today = apply_pu_gradient(zone_today.style, zone_today).set_table_styles(HEADER_STYLES)
                 st.dataframe(styled_zone_today, width="stretch", hide_index=True)
-            else: st.info("No data available for today.")
+            else: st.info(f"No data available for {end_str}.")
 
         with col_right:
-            st.header("⏳ Last 5 Days Trends")
+            st.header(f"⏳ Trend View ({date_preset})")
             
             fiveday_planned = valid_5day[valid_5day['Type of Outage'] == 'Planned Outage'] 
             fiveday_popc = valid_5day[valid_5day['Type of Outage'] == 'Power Off By PC'] 
             fiveday_unplanned = valid_5day[valid_5day['Type of Outage'] == 'Unplanned Outage'] 
             
-            st.subheader("Outage Summary (5 Days)")
+            st.subheader(f"Outage Summary ({date_preset})")
             kpi4, kpi5, kpi6 = st.columns(3)
             with kpi4: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Planned Outages</div><div class="kpi-value">{len(fiveday_planned)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
             with kpi5: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Power Off By PC</div><div class="kpi-value">{len(fiveday_popc)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
             with kpi6: st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Unplanned Outages</div><div class="kpi-value">{len(fiveday_unplanned)}</div></div><div class="kpi-subtext" style="visibility: hidden;">Spacer</div></div>', unsafe_allow_html=True)
 
             st.divider()
-            st.subheader("Zone-wise Distribution (5 Days)")
+            st.subheader(f"Zone-wise Distribution ({date_preset})")
             if not valid_5day.empty:
                 zone_5day = valid_5day.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
                 for col in ['Planned Outage', 'Power Off By PC', 'Unplanned Outage']:
@@ -605,10 +634,10 @@ def render_dashboard():
                 
                 styled_zone_5day = apply_pu_gradient(zone_5day.style, zone_5day).set_table_styles(HEADER_STYLES)
                 st.dataframe(styled_zone_5day, width="stretch", hide_index=True)
-            else: st.info("No data available for the last 5 days.")
+            else: st.info("No data available for the selected period.")
 
         st.divider()
-        st.header("🚨 Notorious Feeders (3+ Days of Outages in Last 5 Days)")
+        st.header(f"🚨 Notorious Feeders (3+ Days of Outages in {date_preset})")
         st.caption("Top 5 worst-performing feeders per circle based on continuous outage days.")
 
         noto_col1, noto_col2 = st.columns(2)
@@ -654,7 +683,7 @@ def render_dashboard():
         combined_circle = pd.concat(
             [curr_1d_p_tab1, curr_1d_po_tab1, curr_1d_u_tab1, curr_5d_p_tab1, curr_5d_po_tab1, curr_5d_u_tab1], 
             axis=1, 
-            keys=['TODAY (Planned)', 'TODAY (Power Off)', 'TODAY (Unplanned)', 'LAST 5 DAYS (Planned)', 'LAST 5 DAYS (Power Off)', 'LAST 5 DAYS (Unplanned)']
+            keys=['END DATE (Planned)', 'END DATE (Power Off)', 'END DATE (Unplanned)', 'RANGE (Planned)', 'RANGE (Power Off)', 'RANGE (Unplanned)']
         ).fillna(0).astype(int)
 
         st.markdown(" **Click on any row inside the table below** to view the specific Feeder drill-down details.")
@@ -674,12 +703,12 @@ def render_dashboard():
                 st.subheader(f"Feeder Details for: {selected_circle}")
                 
                 circle_dates = sorted(list(valid_5day[valid_5day['Circle'] == selected_circle]['Outage Date'].dropna().unique()))
-                selected_dates = st.multiselect("Filter 5-Days View by Date:", options=circle_dates, default=circle_dates, format_func=lambda x: x.strftime('%d %b %Y'))
+                selected_dates = st.multiselect("Filter Range View by Date:", options=circle_dates, default=circle_dates, format_func=lambda x: x.strftime('%d %b %Y'))
                 
                 def highlight_notorious(row): return ['background-color: rgba(220, 53, 69, 0.15); color: #850000; font-weight: bold'] * len(row) if (selected_circle, row['Feeder']) in notorious_set else [''] * len(row)
 
                 st.write("---")
-                st.markdown("### 🔴 TODAY DRILLDOWN")
+                st.markdown(f"### 🔴 SINGLE DAY DRILLDOWN ({end_str})")
                 today_left, today_mid, today_right = st.columns(3)
                 with today_left:
                     st.markdown(f"**Planned Outages**")
@@ -695,7 +724,7 @@ def render_dashboard():
                     st.dataframe(feeder_list_tu.style.apply(highlight_notorious, axis=1).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
                     
                 st.write("---") 
-                st.markdown("### 🟢 LAST 5 DAYS DRILLDOWN")
+                st.markdown(f"### 🟢 SELECTED RANGE DRILLDOWN")
                 fiveday_left, fiveday_mid, fiveday_right = st.columns(3)
                 
                 with fiveday_left:
