@@ -13,6 +13,10 @@ ZONE_TOTALS = {
     'West': {'Total JEs': 346, 'PSPCL_G': 256, 'PSTCL_G': 44}
 }
 
+# Overall System Totals for KPIs
+SYSTEM_TOTAL_JES = 1688
+SYSTEM_TOTAL_GRIDS = 1022
+
 def fetch_ptw_data(api_key, start_date, end_date):
     url = "https://distribution.pspcl.in/returns/module.php?to=OutageAPI.getPTWRequests"
     payload = {"fromdate": start_date, "todate": end_date, "apikey": api_key}
@@ -83,7 +87,29 @@ def render_ptw_lm_dashboard():
     if 'grid_ownership' in df.columns:
         df['grid_ownership'] = df['grid_ownership'].astype(str).str.strip().str.upper()
 
-    # 4. Processing Metrics per Zone
+    # --- KPI SECTION ---
+    st.markdown("""
+        <style>
+            .kpi-card { background: linear-gradient(135deg, #004481 0%, #0066cc 100%); border-radius: 6px; padding: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.08); margin-bottom: 1rem;}
+            .kpi-title { color: #FFC107; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.2rem;}
+            .kpi-value { color: #FFFFFF; font-weight: 700; font-size: 2.2rem; line-height: 1.2;}
+        </style>
+    """, unsafe_allow_html=True)
+
+    total_jes_active = df['permit_je'].nunique()
+    total_grids_active = df['grid_code'].nunique()
+    je_adoption_rate = total_jes_active / SYSTEM_TOTAL_JES
+    grid_adoption_rate = total_grids_active / SYSTEM_TOTAL_GRIDS
+
+    st.subheader(f"📊 Global Performance ({start_date.strftime('%d %b')} to {end_date.strftime('%d %b %Y')})")
+    
+    k1, k2, k3, k4 = st.columns(4)
+    with k1: st.markdown(f'<div class="kpi-card"><div class="kpi-title">Total JEs Using PTW</div><div class="kpi-value">{total_jes_active}</div></div>', unsafe_allow_html=True)
+    with k2: st.markdown(f'<div class="kpi-card"><div class="kpi-title">Overall JE Adoption</div><div class="kpi-value">{je_adoption_rate:.1%}</div></div>', unsafe_allow_html=True)
+    with k3: st.markdown(f'<div class="kpi-card"><div class="kpi-title">Total Grids Using PTW</div><div class="kpi-value">{total_grids_active}</div></div>', unsafe_allow_html=True)
+    with k4: st.markdown(f'<div class="kpi-card"><div class="kpi-title">Overall Grid Adoption</div><div class="kpi-value">{grid_adoption_rate:.1%}</div></div>', unsafe_allow_html=True)
+
+    # 4. Processing Metrics per Zone for Table
     metrics_data = []
 
     # Row 1: JEs Using PTW
@@ -124,31 +150,61 @@ def render_ptw_lm_dashboard():
     # 5. Create Transposed DataFrame
     performance_df = pd.DataFrame(metrics_data, columns=["Metric"] + ZONES)
 
-    # 6. Display the Main Table
-    st.write("---")
-    # Dynamic header displaying exact dates selected
-    st.subheader(f"📊 Performance Overview ({start_date.strftime('%d %b %Y')} to {end_date.strftime('%d %b %Y')})")
-    
-    def color_shares(val):
-        if isinstance(val, str) and '%' in val:
-            pct = float(val.replace('%', ''))
-            if pct >= 30: return 'background-color: #c6efce; color: #006100;' 
-            if pct < 15: return 'background-color: #ffc7ce; color: #9c0006;' 
-        return ''
+    # 6. Dynamic Excel-like Conditional Formatting (Red to Green)
+    def apply_gradient(row):
+        # Only apply gradient to rows that are percentages ("Share")
+        if "Share" in str(row.iloc[0]):
+            # Extract numerical float values from the percentage strings
+            vals = []
+            for val in row[1:]:
+                if isinstance(val, str) and '%' in val:
+                    try:
+                        vals.append(float(val.strip('%')))
+                    except ValueError:
+                        vals.append(None)
+                else:
+                    vals.append(None)
+            
+            valid_vals = [v for v in vals if v is not None]
+            if not valid_vals:
+                return [''] * len(row)
+                
+            min_val, max_val = min(valid_vals), max(valid_vals)
+            styles = [''] # Empty style for the 'Metric' column name
+            
+            for val in vals:
+                if val is None:
+                    styles.append('')
+                else:
+                    # Calculate position between min and max (0.0 to 1.0)
+                    norm = (val - min_val) / (max_val - min_val) if max_val > min_val else 0.5
+                    
+                    # Interpolate Red -> Yellow -> Green (Standard Excel Colors)
+                    if norm < 0.5:
+                        pct = norm / 0.5
+                        r, g, b = int(248 + (255 - 248) * pct), int(105 + (235 - 105) * pct), int(107 + (132 - 107) * pct)
+                    else:
+                        pct = (norm - 0.5) / 0.5
+                        r, g, b = int(255 + (99 - 255) * pct), int(235 + (195 - 235) * pct), int(132 + (132 - 132) * pct)
+                        
+                    # Apply color with transparency so black text remains readable
+                    styles.append(f'background-color: rgba({r}, {g}, {b}, 0.6); color: #000000; font-weight: 500;')
+            return styles
+            
+        # Return empty styles for non-percentage rows
+        return [''] * len(row)
 
-    st.dataframe(performance_df.style.map(color_shares), hide_index=True, use_container_width=True)
-
-    # 7. NEW: Visual Insights Section
+    # 7. Display the Main Table
     st.write("---")
-    st.subheader("📈 Visual Insights: Volume by Zone")
-    st.caption("Compare the raw volume of JEs and Grids utilizing the PTW system across all zones.")
+    st.subheader("Regional Breakdown")
     
-    # Create a simple DataFrame for charting
-    chart_df = pd.DataFrame({
-        'Zone': ZONES,
-        'JEs Using PTW': jes.tolist(),
-        'Grids Using PTW': grids.tolist()
-    }).set_index('Zone')
-    
-    # Render native Streamlit bar chart
-    st.bar_chart(chart_df, height=350, use_container_width=True)
+    st.markdown("""
+        <style>
+        .ptw-table td { text-align: center !important; }
+        .ptw-table th { background-color: #004085 !important; color: white !important; }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Apply the new row-wise gradient function
+    styled_df = performance_df.style.apply(apply_gradient, axis=1)
+    st.dataframe(styled_df, hide_index=True, use_container_width=True)
