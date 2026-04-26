@@ -1,3 +1,6 @@
+# =========================================================================================================================
+# V2
+# =========================================================================================================================
 import os
 import requests
 import streamlit as st
@@ -68,6 +71,25 @@ def fetch_from_api(url, payload):
         print(f"API Fetch Error: {e}")
         return []
 
+@st.cache_data
+def load_historical_data():
+    if os.path.exists('Historical_2026.csv') and os.path.exists('Historical_2025.csv'):
+        df_26, df_25 = pd.read_csv('Historical_2026.csv'), pd.read_csv('Historical_2025.csv')
+        for df in [df_26, df_25]:
+            if 'Type of Outage' in df.columns:
+                df['Raw Outage Type'] = df['Type of Outage'].astype(str).str.strip()
+                def standardize_outage(val):
+                    v_lower = str(val).lower()
+                    if 'power off' in v_lower: return 'Power Off By PC'
+                    if 'unplanned' in v_lower: return 'Unplanned Outage'
+                    if 'planned' in v_lower: return 'Planned Outage'
+                    return val
+                df['Type of Outage'] = df['Raw Outage Type'].apply(standardize_outage)
+                
+            df['Outage Date'] = pd.to_datetime(df['Start Time'], errors='coerce').dt.date
+        return df_26, df_25
+    return pd.DataFrame(), pd.DataFrame()
+
 def sync_gsheets():
     client = get_gspread_client()
     sh = client.open(SHEET_NAME)
@@ -77,9 +99,13 @@ def sync_gsheets():
     df_gs_outages = pd.DataFrame(ws_outages.get_all_records())
     df_gs_ptw = pd.DataFrame(ws_ptw.get_all_records())
     
-    # If empty, pull from Jan 1 2025. Otherwise, pull last 7 days to catch status changes.
+    # Bridge the gap automatically
     if df_gs_outages.empty:
-        start_date_str = "2025-01-01"
+        df_26, _ = load_historical_data()
+        if not df_26.empty:
+            start_date_str = pd.to_datetime(df_26['Start Time'], errors='coerce').max().strftime("%Y-%m-%d")
+        else:
+            start_date_str = (datetime.now(IST) - timedelta(days=30)).strftime("%Y-%m-%d")
     else:
         start_date_str = (datetime.now(IST) - timedelta(days=7)).strftime("%Y-%m-%d")
         
@@ -181,26 +207,18 @@ def load_data_pipeline():
     except Exception as e:
         print(f"Background Sync failed, loading from Google Sheets cache: {e}")
         pass
-    return read_gsheets()
+    
+    df_gs_outages, df_gs_ptw, fetch_time = read_gsheets()
+    df_26, df_25 = load_historical_data()
+    
+    # MASTER MERGE: Stacking CSVs with Live GSheets data
+    df_all_outages = pd.concat([df_25, df_26, df_gs_outages]).drop_duplicates(subset=['Circle', 'Feeder', 'Start Time'], keep='last')
+    
+    if not df_all_outages.empty:
+        df_all_outages['Start Time'] = pd.to_datetime(df_all_outages['Start Time'], errors='coerce')
+        
+    return df_all_outages, df_gs_ptw, fetch_time
 
-@st.cache_data
-def load_historical_data():
-    if os.path.exists('Historical_2026.csv') and os.path.exists('Historical_2025.csv'):
-        df_26, df_25 = pd.read_csv('Historical_2026.csv'), pd.read_csv('Historical_2025.csv')
-        for df in [df_26, df_25]:
-            if 'Type of Outage' in df.columns:
-                df['Raw Outage Type'] = df['Type of Outage'].astype(str).str.strip()
-                def standardize_outage(val):
-                    v_lower = str(val).lower()
-                    if 'power off' in v_lower: return 'Power Off By PC'
-                    if 'unplanned' in v_lower: return 'Unplanned Outage'
-                    if 'planned' in v_lower: return 'Planned Outage'
-                    return val
-                df['Type of Outage'] = df['Raw Outage Type'].apply(standardize_outage)
-                
-            df['Outage Date'] = pd.to_datetime(df['Start Time'], errors='coerce').dt.date
-        return df_26, df_25
-    return pd.DataFrame(), pd.DataFrame()
 
 # --- HELPER FUNCTIONS ---
 def generate_yoy_dist_expanded(df_curr, df_ly, group_col):
@@ -442,8 +460,8 @@ def render_dashboard():
         mask_today = (df_all_outages['DateOnly'] == end_date)
         df_today = df_all_outages[mask_today].copy()
     else:
-        df_5day = pd.DataFrame(columns=df_all_outages.columns)
-        df_today = pd.DataFrame(columns=df_all_outages.columns)
+        df_5day = pd.DataFrame()
+        df_today = pd.DataFrame()
 
     if not df_all_ptw.empty:
         df_all_ptw['DateOnly_Start'] = pd.to_datetime(df_all_ptw['Start Date'], dayfirst=True, errors='coerce').dt.date
@@ -452,22 +470,20 @@ def render_dashboard():
                    ((df_all_ptw['DateOnly_Req'] >= start_date) & (df_all_ptw['DateOnly_Req'] <= end_date))
         df_ptw = df_all_ptw[mask_ptw].copy()
     else:
-        df_ptw = pd.DataFrame(columns=df_all_ptw.columns)
+        df_ptw = pd.DataFrame(columns=df_all_ptw.columns) if not df_all_ptw.empty else pd.DataFrame()
 
     # Display dynamic timestamp
     with col2:
         st.markdown(f"<div style='text-align: right; color: #666; font-size: 0.85rem; margin-top: 4px;'>Database Synced:<br><b>{last_updated}</b></div>", unsafe_allow_html=True)
 
+
     # --- Pre-compute Notorious Feeders (Two-Phased Logic) ---
-    
-    # 1. Enforce Global Rule: Exclude Cancelled Status
     if not df_all_outages.empty and 'Status' in df_all_outages.columns:
         valid_outages = df_all_outages[~df_all_outages['Status'].astype(str).str.contains('Cancel', case=False, na=False)].copy()
     else:
         valid_outages = df_all_outages.copy()
 
     if not valid_outages.empty:
-        valid_outages['Start Time'] = pd.to_datetime(valid_outages['Start Time'], errors='coerce')
         valid_outages['DateOnly'] = valid_outages['Start Time'].dt.date
         valid_outages['Diff in mins'] = pd.to_numeric(valid_outages['Diff in mins'], errors='coerce').fillna(0)
         
@@ -488,9 +504,7 @@ def render_dashboard():
             df_eval = valid_outages[mask].copy()
             
             if not df_eval.empty:
-                # Group by Circle, Feeder, and Calendar Week
                 weekly_counts = df_eval.groupby(['Circle', 'Feeder', pd.Grouper(key='Start Time', freq='W')])['DateOnly'].nunique().reset_index()
-                # Keep feeders that hit 3+ days in ANY single week
                 notorious_feeders_list = weekly_counts[weekly_counts['DateOnly'] >= 3][['Circle', 'Feeder']].drop_duplicates()
 
         # 3. Calculate Final Stats for identified Notorious Feeders
@@ -499,12 +513,12 @@ def render_dashboard():
             stats = stats.groupby(['Circle', 'Feeder']).agg(
                 Total_Events=('Start Time', 'size'), 
                 Total_Mins=('Diff in mins', 'sum'),
-                Max_Mins=('Diff in mins', 'max') # Added Max_Mins
+                Max_Mins=('Diff in mins', 'max') 
             ).reset_index()
             
             stats.rename(columns={'Total_Events': 'Total Outage Events'}, inplace=True)
             stats['Total Duration (Hours)'] = (stats['Total_Mins'] / 60).round(2)
-            stats['Max Duration (Hours)'] = (stats['Max_Mins'] / 60).round(2) # Added Max Duration
+            stats['Max Duration (Hours)'] = (stats['Max_Mins'] / 60).round(2) 
             notorious = stats.drop(columns=['Total_Mins', 'Max_Mins'])
             
             # Rank by most events, then longest total duration
@@ -516,8 +530,9 @@ def render_dashboard():
             top_5_notorious = pd.DataFrame(columns=['Circle', 'Feeder', 'Total Outage Events', 'Total Duration (Hours)', 'Max Duration (Hours)'])
             notorious_set = set()
     else:
-        top_5_notorious = pd.DataFrame(columns=['Circle', 'Feeder', 'Total Outage Events', 'Total Duration (Hours)'])
+        top_5_notorious = pd.DataFrame(columns=['Circle', 'Feeder', 'Total Outage Events', 'Total Duration (Hours)', 'Max Duration (Hours)'])
         notorious_set = set()
+
 
     tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "📈 YoY Comparison", "🛠️ PTW Frequency"])
 
@@ -703,7 +718,11 @@ def render_dashboard():
         else:
             fiveday_planned = fiveday_popc = fiveday_unplanned = pd.DataFrame()
 
-        st.header(f"📅 Selected End Date ({pd.to_datetime(end_str).strftime('%d %b %Y')})")
+        # Dynamically set the main summary header
+        if start_date == end_date:
+            st.header(f"📅 Outage Summary ({pd.to_datetime(end_str).strftime('%d %b %Y')})")
+        else:
+            st.header(f"📅 Outage Summary ({pd.to_datetime(start_str).strftime('%d %b')} to {pd.to_datetime(end_str).strftime('%d %b %Y')})")
         
         # 3. Safely filter for Type of Outage (Today)
         if not valid_today.empty and 'Type of Outage' in valid_today.columns:
@@ -713,7 +732,6 @@ def render_dashboard():
         else:
             today_planned = today_popc = today_unplanned = pd.DataFrame()
         
-        st.subheader("Outage Summary")
         kpi1, kpi2, kpi3 = st.columns(3)
         with kpi1:
             active_p, closed_p = (len(today_planned[today_planned['Status_Calc'] == 'Active']), len(today_planned[today_planned['Status_Calc'] == 'Closed'])) if not today_planned.empty else (0,0)
@@ -727,7 +745,7 @@ def render_dashboard():
 
         st.divider()
         st.subheader("Zone-wise Distribution")
-        if not valid_today.empty:
+        if not valid_today.empty and 'Zone' in valid_today.columns and 'Type of Outage' in valid_today.columns:
             zone_today = valid_today.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
             for col in ['Planned Outage', 'Power Off By PC', 'Unplanned Outage']:
                 if col not in zone_today: zone_today[col] = 0
@@ -738,26 +756,30 @@ def render_dashboard():
         else: st.info(f"No data available for {end_str}.")
 
         st.divider()
-        st.header(f"🚨 Notorious Feeders (3+ Days of Outages in {preset_label})")
-        st.caption("Top 5 worst-performing feeders per circle based on continuous outage days.")
+        st.header(f"🚨 Top 5 Notorious Feeders (By Outage Frequency)")
+        
+        if start_date == end_date:
+            st.caption("Top 5 worst-performing feeders per circle based on outages across a 3-Day Window ending today.")
+        else:
+            st.caption("Top 5 worst-performing feeders per circle based on consistent outages (3+ days per week) over the selected period.")
 
         noto_col1, noto_col2 = st.columns(2)
         with noto_col1: selected_notorious_circle = st.selectbox("Filter by Circle:", ["All Circles"] + sorted(top_5_notorious['Circle'].unique().tolist()) if not top_5_notorious.empty else ["All Circles"], index=0)
         with noto_col2: selected_notorious_type = st.selectbox("Filter by Outage Type:", ["All Types", "Planned Outage", "Power Off By PC", "Unplanned Outage"], index=0)
 
         df_dyn = valid_5day.copy()
-        if selected_notorious_type != "All Types" and not df_dyn.empty: 
+        if selected_notorious_type != "All Types" and not df_dyn.empty and 'Type of Outage' in df_dyn.columns: 
             df_dyn = df_dyn[df_dyn['Type of Outage'] == selected_notorious_type]
 
-       if not df_dyn.empty:
+        if not df_dyn.empty:
             # Apply the max aggregation to the filtered view
             dyn_stats = df_dyn.groupby(['Circle', 'Feeder']).agg(
                 Total_Events=('Start Time', 'size'), 
                 Total_Mins=('Diff in mins', 'sum'),
-                Max_Mins=('Diff in mins', 'max') # Added Max_Mins
+                Max_Mins=('Diff in mins', 'max') 
             ).reset_index()
             
-            # Merge with the globally calculated notorious feeders list to avoid recalculating
+            # Merge with the globally calculated notorious feeders list to avoid recalculating days
             if not notorious_feeders_list.empty:
                 dyn_noto = dyn_stats.merge(notorious_feeders_list, on=['Circle', 'Feeder']).drop_duplicates()
             else:
@@ -766,7 +788,7 @@ def render_dashboard():
             if not dyn_noto.empty:
                 dyn_noto.rename(columns={'Total_Events': 'Total Outage Events'}, inplace=True)
                 dyn_noto['Total Duration (Hours)'] = (dyn_noto['Total_Mins'] / 60).round(2)
-                dyn_noto['Max Duration (Hours)'] = (dyn_noto['Max_Mins'] / 60).round(2) # Added Max Duration
+                dyn_noto['Max Duration (Hours)'] = (dyn_noto['Max_Mins'] / 60).round(2) 
                 dyn_noto = dyn_noto.drop(columns=['Total_Mins', 'Max_Mins'])
 
                 # Sort it
@@ -875,6 +897,10 @@ elif st.session_state.page == 'dashboard':
     render_dashboard()
 elif st.session_state.page == 'ptw_app':
     render_ptw_lm_dashboard()
+
+
+
+
 # =========================================================================================================================
 # V1
 # =========================================================================================================================
