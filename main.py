@@ -8,6 +8,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta, timezone
+from dateutil.relativedelta import relativedelta
 from ptw_lm_app import render_ptw_lm_dashboard
 
 # --- PAGE CONFIGURATION ---
@@ -63,13 +64,31 @@ def get_gspread_client():
 
 def fetch_from_api(url, payload):
     try:
-        res = requests.post(url, json=payload, headers={'Content-Type': 'application/json'}, timeout=40)
+        # Updated to 60s timeout to match your local working script
+        res = requests.post(url, json=payload, headers={'Content-Type': 'application/json'}, timeout=60, verify=True)
         res.raise_for_status()
         data = res.json()
         return data if isinstance(data, list) else data.get("data", [])
     except Exception as e:
-        print(f"API Fetch Error: {e}")
+        print(f"API Fetch Error for {payload}: {e}")
         return []
+def fetch_outages_chunked(start_str, end_str, api_key):
+    """Chunks the outage requests month-by-month to bypass server timeouts."""
+    start = datetime.strptime(start_str, "%Y-%m-%d")
+    end = datetime.strptime(end_str, "%Y-%m-%d")
+    all_data = []
+    
+    while start <= end:
+        month_end = start + relativedelta(months=1) - timedelta(days=1)
+        if month_end > end:
+            month_end = end
+            
+        chunk = fetch_from_api(OUTAGE_URL, {"fromdate": start.strftime("%Y-%m-%d"), "todate": month_end.strftime("%Y-%m-%d"), "apikey": api_key})
+        if chunk:
+            all_data.extend(chunk)
+            
+        start += relativedelta(months=1)
+    return all_data
 
 @st.cache_data
 def load_historical_data():
@@ -110,20 +129,21 @@ def sync_gsheets():
             if pd.isna(csv_max_date):
                 outage_start = (datetime.now(IST) - timedelta(days=30)).strftime("%Y-%m-%d")
             else:
-                outage_start = csv_max_date.strftime("%Y-%m-%d") # Fetch exactly from where CSV left off
+                outage_start = csv_max_date.strftime("%Y-%m-%d")
         else:
             outage_start = (datetime.now(IST) - timedelta(days=30)).strftime("%Y-%m-%d")
     else:
+        # Standard rolling update once the sheet has data
         outage_start = (datetime.now(IST) - timedelta(days=7)).strftime("%Y-%m-%d")
 
-    # --- 2. PTW FETCH LOGIC (Independent) ---
+    # --- 2. PTW FETCH LOGIC ---
     if df_gs_ptw.empty:
-        ptw_start = (datetime.now(IST) - timedelta(days=30)).strftime("%Y-%m-%d") # Full 30-day baseline
+        ptw_start = (datetime.now(IST) - timedelta(days=30)).strftime("%Y-%m-%d")
     else:
         ptw_start = (datetime.now(IST) - timedelta(days=7)).strftime("%Y-%m-%d")
 
-    # --- 3. EXECUTE API CALLS ---
-    raw_outages = fetch_from_api(OUTAGE_URL, {"fromdate": outage_start, "todate": end_date_str, "apikey": api_key})
+    # --- 3. EXECUTE API CALLS (Using Chunking for Outages) ---
+    raw_outages = fetch_outages_chunked(outage_start, end_date_str, api_key)
     raw_ptw = fetch_from_api(PTW_URL, {"fromdate": ptw_start, "todate": end_date_str, "apikey": api_key})
     
     df_api_outages = pd.DataFrame(raw_outages)
@@ -170,7 +190,7 @@ def sync_gsheets():
         combined_ptw = combined_ptw.fillna("").astype(str)
         ws_ptw.clear()
         ws_ptw.update([combined_ptw.columns.values.tolist()] + combined_ptw.values.tolist())
-
+        
 def read_gsheets():
     client = get_gspread_client()
     sh = client.open(SHEET_NAME)
