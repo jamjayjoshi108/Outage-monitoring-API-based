@@ -533,8 +533,11 @@ def render_dashboard():
                 
                 ptw_clean = ptw_clean.explode(feeder_col).reset_index(drop=True)
                 
-                ptw_clean[feeder_col] = ptw_clean[feeder_col].str.strip()
-                ptw_clean = ptw_clean[ptw_clean[feeder_col] != '']
+                # Force to string before stripping to prevent float/NaN errors
+                ptw_clean[feeder_col] = ptw_clean[feeder_col].astype(str).str.strip()
+                
+                # Filter out empty strings AND stringified 'nan's
+                ptw_clean = ptw_clean[(ptw_clean[feeder_col] != '') & (ptw_clean[feeder_col].str.lower() != 'nan')]
 
                 group_cols = [feeder_col]
                 if circle_col: group_cols.insert(0, circle_col)
