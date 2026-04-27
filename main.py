@@ -69,10 +69,9 @@ def load_data_pipeline():
     
     # 1. Force the dates into the exact string format MotherDuck needs
     end_date_str = now_ist.strftime("%Y-%m-%d")
-    start_date_str = (now_ist - timedelta(days=180)).strftime("%Y-%m-%d")
-
-    # 2. Add an alert right on the dashboard so we can see the exact strings
-    st.warning(f"DEBUG PIPELINE DATES: Start: {start_date_str} | End: {end_date_str}")
+    
+    # [CRITICAL FIX] Fetch EVERYTHING since Jan 1, 2024 so your 2025 dummy data is actually loaded into memory!
+    start_date_str = "2024-01-01" 
 
     # ==========================================
     # 1. OUTAGES LOGIC
