@@ -1640,10 +1640,10 @@ def render_dashboard():
                 except ValueError:
                     return d.replace(year=d.year - 1, day=28)
 
-            ly_start = get_ly_date(start_date)
-            ly_end = get_ly_date(end_date)
+            ly_start = get_ly_date(start_date_2)
+            ly_end = get_ly_date(end_date_2)
             
-            mask_curr = (df_all_outages['DateOnly'] >= start_date) & (df_all_outages['DateOnly'] <= end_date)
+            mask_curr = (df_all_outages['DateOnly'] >= start_date_2) & (df_all_outages['DateOnly'] <= end_date_2)
             filtered_curr = df_all_outages[mask_curr]
             
             mask_ly = (df_all_outages['DateOnly'] >= ly_start) & (df_all_outages['DateOnly'] <= ly_end)
