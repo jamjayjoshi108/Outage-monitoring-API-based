@@ -81,6 +81,7 @@ def load_data_pipeline():
         "start_date": start_str, 
         "end_date": end_str
     })
+    st.write(outages_raw)
     df_outages = pd.DataFrame(outages_raw)
 
     # Standardize Outages for Dashboard Consumption
