@@ -951,12 +951,12 @@ def load_data_pipeline():
     if not df_outages.empty and 'Start Time' in df_outages.columns:
         max_outage_date = pd.to_datetime(df_outages['Start Time'], errors='coerce').max()
         if pd.isna(max_outage_date):
-            outage_start_str = (now_ist - timedelta(days=30)).strftime("%Y-%m-%d")
+            outage_start_str = (now_ist - timedelta(days=180)).strftime("%Y-%m-%d")
         else:
             # We subtract 1 day to catch any late status updates for yesterday's records
             outage_start_str = (max_outage_date - timedelta(days=1)).strftime("%Y-%m-%d")
     else:
-        outage_start_str = (now_ist - timedelta(days=30)).strftime("%Y-%m-%d")
+        outage_start_str = (now_ist - timedelta(days=180)).strftime("%Y-%m-%d")
 
     # Fetch and Append New Outages
     new_outages = fetch_outages_chunked(outage_start_str, end_date_str, api_key)
@@ -1021,13 +1021,13 @@ def load_data_pipeline():
         if date_col:
             max_ptw_date = pd.to_datetime(df_ptw[date_col], errors='coerce').max()
             if pd.isna(max_ptw_date):
-                ptw_start_str = (now_ist - timedelta(days=30)).strftime("%Y-%m-%d")
+                ptw_start_str = (now_ist - timedelta(days=180)).strftime("%Y-%m-%d")
             else:
                 ptw_start_str = (max_ptw_date - timedelta(days=1)).strftime("%Y-%m-%d")
         else:
-            ptw_start_str = (now_ist - timedelta(days=30)).strftime("%Y-%m-%d")
+            ptw_start_str = (now_ist - timedelta(days=180)).strftime("%Y-%m-%d")
     else:
-        ptw_start_str = (now_ist - timedelta(days=30)).strftime("%Y-%m-%d")
+        ptw_start_str = (now_ist - timedelta(days=180)).strftime("%Y-%m-%d")
 
     # Fetch and Append New PTWs
     new_ptw = fetch_from_api(PTW_URL, {"fromdate": ptw_start_str, "todate": end_date_str, "apikey": api_key})
