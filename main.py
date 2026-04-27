@@ -72,10 +72,14 @@ def load_data_pipeline():
     # ==========================================
     # 1. OUTAGES LOGIC
     # ==========================================
+    # Force the string format "YYYY-MM-DD"
+    start_str = start_date_str if isinstance(start_date_str, str) else start_date_str.strftime("%Y-%m-%d")
+    end_str = end_date_str if isinstance(end_date_str, str) else end_date_str.strftime("%Y-%m-%d")
+
     outages_raw = fetch_cloud_data({
         "table": "outages", 
-        "start_date": start_date_str, 
-        "end_date": end_date_str
+        "start_date": start_str, 
+        "end_date": end_str
     })
     df_outages = pd.DataFrame(outages_raw)
 
@@ -126,8 +130,8 @@ def load_data_pipeline():
     # ==========================================
     ptw_raw = fetch_cloud_data({
         "table": "ptw", 
-        "start_date": start_date_str, 
-        "end_date": end_date_str
+        "start_date": start_str, 
+        "end_date": end_str
     })
     df_ptw = pd.DataFrame(ptw_raw)
 
