@@ -851,7 +851,6 @@
 # # =========================================================================================================================
 # # V2
 # # =========================================================================================================================
-
 import os
 import requests
 import streamlit as st
@@ -1248,7 +1247,7 @@ def render_dashboard():
     with col2:
         st.markdown(f"<div style='text-align: right; color: #666; font-size: 0.85rem; margin-top: 4px;'>Database Synced:<br><b>{last_updated}</b></div>", unsafe_allow_html=True)
 
-    # Helper for Independent Date Presets
+    # --- HELPER FOR INDEPENDENT DATE PRESETS ---
     def get_preset_dates(preset):
         t = pd.to_datetime("today").date()
         if preset == "Today": return t, t
@@ -1260,17 +1259,36 @@ def render_dashboard():
         elif preset == "Last 6 Months": return (t - pd.DateOffset(months=6)).date(), t
         return t, t
 
+    # --- CALLBACKS TO FORCE UI UPDATE ---
+    def update_dates_t1():
+        st.session_state.start_t1, st.session_state.end_t1 = get_preset_dates(st.session_state.preset_t1)
+
+    def update_dates_t2():
+        st.session_state.start_t2, st.session_state.end_t2 = get_preset_dates(st.session_state.preset_t2)
+
+    def update_dates_t3():
+        st.session_state.start_t3, st.session_state.end_t3 = get_preset_dates(st.session_state.preset_t3)
+
+    # Initialize states on first load if they don't exist
+    if "preset_t1" not in st.session_state: st.session_state.preset_t1 = "Today"
+    if "preset_t2" not in st.session_state: st.session_state.preset_t2 = "Today"
+    if "preset_t3" not in st.session_state: st.session_state.preset_t3 = "Today"
+    
+    if "start_t1" not in st.session_state: st.session_state.start_t1, st.session_state.end_t1 = get_preset_dates("Today")
+    if "start_t2" not in st.session_state: st.session_state.start_t2, st.session_state.end_t2 = get_preset_dates("Today")
+    if "start_t3" not in st.session_state: st.session_state.start_t3, st.session_state.end_t3 = get_preset_dates("Today")
+
     tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "📈 YoY Comparison", "🛠️ PTW Frequency"])
 
     # ==========================================
     # TAB 1: ORIGINAL DASHBOARD
     # ==========================================
     with tab1:
-        st.radio("📅 Select Time Period:", ["Today", "Current Month", "Last Month", "Last 3 Months", "Last 6 Months"], key="preset_t1", horizontal=True)
-        def_start_1, def_end_1 = get_preset_dates(st.session_state.preset_t1)
+        st.radio("📅 Select Time Period:", ["Today", "Current Month", "Last Month", "Last 3 Months", "Last 6 Months"], key="preset_t1", horizontal=True, on_change=update_dates_t1)
+        
         c1, c2 = st.columns(2)
-        start_date_1 = c1.date_input("From Date", value=def_start_1, key="start_t1")
-        end_date_1 = c2.date_input("To Date", value=def_end_1, key="end_t1")
+        start_date_1 = c1.date_input("From Date", key="start_t1")
+        end_date_1 = c2.date_input("To Date", key="end_t1")
         end_str_1 = end_date_1.strftime("%Y-%m-%d")
 
         # Filtering logic for Tab 1
@@ -1471,11 +1489,10 @@ def render_dashboard():
     # TAB 2: YOY DRILL-DOWN
     # ==========================================
     with tab2:
-        st.radio("📅 Select Time Period:", ["Today", "Current Month", "Last Month", "Last 3 Months", "Last 6 Months"], key="preset_t2", horizontal=True)
-        def_start_2, def_end_2 = get_preset_dates(st.session_state.preset_t2)
+        st.radio("📅 Select Time Period:", ["Today", "Current Month", "Last Month", "Last 3 Months", "Last 6 Months"], key="preset_t2", horizontal=True, on_change=update_dates_t2)
         c1, c2 = st.columns(2)
-        start_date_2 = c1.date_input("From Date", value=def_start_2, key="start_t2")
-        end_date_2 = c2.date_input("To Date", value=def_end_2, key="end_t2")
+        start_date_2 = c1.date_input("From Date", key="start_t2")
+        end_date_2 = c2.date_input("To Date", key="end_t2")
 
         st.header("📈 Historical Year-over-Year Drilldown")
         if df_all_outages.empty:
@@ -1557,11 +1574,10 @@ def render_dashboard():
     # TAB 3: PTW FREQUENCY
     # ==========================================
     with tab3:
-        st.radio("📅 Select Time Period:", ["Today", "Current Month", "Last Month", "Last 3 Months", "Last 6 Months"], key="preset_t3", horizontal=True)
-        def_start_3, def_end_3 = get_preset_dates(st.session_state.preset_t3)
+        st.radio("📅 Select Time Period:", ["Today", "Current Month", "Last Month", "Last 3 Months", "Last 6 Months"], key="preset_t3", horizontal=True, on_change=update_dates_t3)
         c1, c2 = st.columns(2)
-        start_date_3 = c1.date_input("From Date", value=def_start_3, key="start_t3")
-        end_date_3 = c2.date_input("To Date", value=def_end_3, key="end_t3")
+        start_date_3 = c1.date_input("From Date", key="start_t3")
+        end_date_3 = c2.date_input("To Date", key="end_t3")
         end_str_3 = end_date_3.strftime("%Y-%m-%d")
 
         st.header(f"🛠️ PTW Frequency Tracker ({st.session_state.preset_t3})")
