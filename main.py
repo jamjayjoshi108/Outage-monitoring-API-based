@@ -119,10 +119,12 @@ def load_data_pipeline():
         }, inplace=True)
         
         df_outages = pd.concat([df_outages, df_new_outages])
-        # Deduplicate based on Circle, Feeder, and Start Time. Keep 'last' to apply Status updates.
-        df_outages['temp_time'] = pd.to_datetime(df_outages['Start Time'], errors='coerce')
+        # Force identical datetime alignment by dropping seconds
+        df_outages['temp_time'] = pd.to_datetime(df_outages['Start Time'], errors='coerce').dt.floor('min')
         df_outages = df_outages.drop_duplicates(subset=['Circle', 'Feeder', 'temp_time'], keep='last').drop(columns=['temp_time'])
         
+        # Save back to local file
+        df_outages.to_excel(OUTAGE_FILE, index=False)
         # Save back to local file
         df_outages.to_excel(OUTAGE_FILE, index=False)
 
@@ -461,7 +463,9 @@ def render_dashboard():
 
     if not valid_outages.empty:
         valid_outages['DateOnly'] = valid_outages['Start Time'].dt.date
+        # Force numeric and prevent negative minutes from destroying sums/maxes
         valid_outages['Diff in mins'] = pd.to_numeric(valid_outages['Diff in mins'], errors='coerce').fillna(0)
+        valid_outages['Diff in mins'] = valid_outages['Diff in mins'].apply(lambda x: max(x, 0))
         
         notorious_feeders_list = pd.DataFrame()
 
