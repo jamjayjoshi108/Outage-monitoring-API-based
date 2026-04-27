@@ -1498,7 +1498,14 @@ def render_dashboard():
 
             st.markdown(f"### 📍 1. Zone-wise Distribution")
             yoy_zone = generate_yoy_dist_expanded(filtered_curr, filtered_ly, 'Zone')
-            zone_selection = st.dataframe(yoy_zone.style.map(highlight_delta, subset=['YoY Delta (Total)']).format(precision=2).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True, on_select="rerun", selection_mode="single-row")
+            zone_selection = st.dataframe(
+                yoy_zone.style.map(highlight_delta, subset=['YoY Delta (Total)']).format(precision=2).set_table_styles(HEADER_STYLES), 
+                width="stretch", 
+                hide_index=True, 
+                on_select="rerun", 
+                selection_mode="single-row",
+                key="yoy_zone_select"  # <-- Added unique key
+            )
 
             if len(zone_selection.selection.rows) > 0:
                 selected_zone = yoy_zone.iloc[zone_selection.selection.rows[0]]['Zone']
@@ -1508,7 +1515,14 @@ def render_dashboard():
                 ly_zone_df = filtered_ly[filtered_ly['Zone'] == selected_zone]
                 
                 yoy_circle = generate_yoy_dist_expanded(curr_zone_df, ly_zone_df, 'Circle')
-                circle_selection = st.dataframe(yoy_circle.style.map(highlight_delta, subset=['YoY Delta (Total)']).format(precision=2).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True, on_select="rerun", selection_mode="single-row")
+                circle_selection = st.dataframe(
+                    yoy_circle.style.map(highlight_delta, subset=['YoY Delta (Total)']).format(precision=2).set_table_styles(HEADER_STYLES), 
+                    width="stretch", 
+                    hide_index=True, 
+                    on_select="rerun", 
+                    selection_mode="single-row",
+                    key="yoy_circle_select"  # <-- Added unique key
+                )
 
                 if len(circle_selection.selection.rows) > 0:
                     selected_circle = yoy_circle.iloc[circle_selection.selection.rows[0]]['Circle']
@@ -1518,8 +1532,12 @@ def render_dashboard():
                     ly_circle_df = ly_zone_df[ly_zone_df['Circle'] == selected_circle]
                     
                     yoy_feeder = generate_yoy_dist_expanded(curr_circle_df, ly_circle_df, 'Feeder')
-                    st.dataframe(yoy_feeder.style.map(highlight_delta, subset=['YoY Delta (Total)']).format(precision=2).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
-
+                    st.dataframe(
+                        yoy_feeder.style.map(highlight_delta, subset=['YoY Delta (Total)']).format(precision=2).set_table_styles(HEADER_STYLES), 
+                        width="stretch", 
+                        hide_index=True,
+                        key="yoy_feeder_display"  # <-- Added unique key
+                    )
     # ==========================================
     # TAB 3: PTW FREQUENCY
     # ==========================================
