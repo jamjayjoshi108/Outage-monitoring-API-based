@@ -674,26 +674,33 @@ def render_dashboard():
         
         kpi1, kpi2, kpi3 = st.columns(3)
         with kpi1:
-            active_p, closed_p = (len(today_planned[today_planned['Status_Calc'] == 'Active']), len(today_planned[today_planned['Status_Calc'] == 'Closed'])) if not today_planned.empty else (0,0)
-            st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Planned Outages</div><div class="kpi-value">{len(today_planned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_p}</span> <span class="status-badge">🟢 Closed: {closed_p}</span></div></div>', unsafe_allow_html=True)
+            active_p = len(fiveday_planned[fiveday_planned['Status_Calc'] == 'Active']) if not fiveday_planned.empty else 0
+            closed_p = len(fiveday_planned[fiveday_planned['Status_Calc'] == 'Closed']) if not fiveday_planned.empty else 0
+            st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Planned Outages</div><div class="kpi-value">{len(fiveday_planned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_p}</span> <span class="status-badge">🟢 Closed: {closed_p}</span></div></div>', unsafe_allow_html=True)
+            
         with kpi2:
-            active_po, closed_po = (len(today_popc[today_popc['Status_Calc'] == 'Active']), len(today_popc[today_popc['Status_Calc'] == 'Closed'])) if not today_popc.empty else (0,0)
-            st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Power Off By PC</div><div class="kpi-value">{len(today_popc)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_po}</span> <span class="status-badge">🟢 Closed: {closed_po}</span></div></div>', unsafe_allow_html=True)
+            active_po = len(fiveday_popc[fiveday_popc['Status_Calc'] == 'Active']) if not fiveday_popc.empty else 0
+            closed_po = len(fiveday_popc[fiveday_popc['Status_Calc'] == 'Closed']) if not fiveday_popc.empty else 0
+            st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Power Off By PC</div><div class="kpi-value">{len(fiveday_popc)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_po}</span> <span class="status-badge">🟢 Closed: {closed_po}</span></div></div>', unsafe_allow_html=True)
+            
         with kpi3:
-            active_u, closed_u = (len(today_unplanned[today_unplanned['Status_Calc'] == 'Active']), len(today_unplanned[today_unplanned['Status_Calc'] == 'Closed'])) if not today_unplanned.empty else (0,0)
-            st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Unplanned Outages</div><div class="kpi-value">{len(today_unplanned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_u}</span> <span class="status-badge">🟢 Closed: {closed_u}</span></div></div>', unsafe_allow_html=True)
+            active_u = len(fiveday_unplanned[fiveday_unplanned['Status_Calc'] == 'Active']) if not fiveday_unplanned.empty else 0
+            closed_u = len(fiveday_unplanned[fiveday_unplanned['Status_Calc'] == 'Closed']) if not fiveday_unplanned.empty else 0
+            st.markdown(f'<div class="kpi-card"><div><div class="kpi-title">Unplanned Outages</div><div class="kpi-value">{len(fiveday_unplanned)}</div></div><div class="kpi-subtext"><span class="status-badge">🔴 Active: {active_u}</span> <span class="status-badge">🟢 Closed: {closed_u}</span></div></div>', unsafe_allow_html=True)
 
         st.divider()
-        st.subheader("Zone-wise Distribution")
-        if not valid_today.empty and 'Zone' in valid_today.columns and 'Type of Outage' in valid_today.columns:
-            zone_today = valid_today.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
+        st.subheader("Zone-wise Distribution (Selected Range)")
+        if not valid_5day.empty and 'Zone' in valid_5day.columns and 'Type of Outage' in valid_5day.columns:
+            # Shifted from valid_today to valid_5day to respect the date picker
+            zone_range = valid_5day.groupby(['Zone', 'Type of Outage']).size().unstack(fill_value=0).reset_index()
             for col in ['Planned Outage', 'Power Off By PC', 'Unplanned Outage']:
-                if col not in zone_today: zone_today[col] = 0
-            zone_today['Total'] = zone_today['Planned Outage'] + zone_today['Power Off By PC'] + zone_today['Unplanned Outage']
+                if col not in zone_range: zone_range[col] = 0
+            zone_range['Total'] = zone_range['Planned Outage'] + zone_range['Power Off By PC'] + zone_range['Unplanned Outage']
             
-            styled_zone_today = apply_pu_gradient(zone_today.style, zone_today).set_table_styles(HEADER_STYLES)
-            st.dataframe(styled_zone_today, width="stretch", hide_index=True)
-        else: st.info(f"No data available for {end_str}.")
+            styled_zone_range = apply_pu_gradient(zone_range.style, zone_range).set_table_styles(HEADER_STYLES)
+            st.dataframe(styled_zone_range, width="stretch", hide_index=True)
+        else: 
+            st.info("No data available for the selected range.")
 
         st.divider()
         st.header(f"🚨 Top 5 Notorious Feeders (By Outage Frequency)")
