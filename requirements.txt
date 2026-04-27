@@ -4,13 +4,9 @@ numpy
 plotly
 streamlit-lottie
 streamlit >= 1.32.0
-pandas
-plotly
-selenium
 duckdb
 openpyxl
 matplotlib
 pydeck
-numpy
 gspread
 google-auth
