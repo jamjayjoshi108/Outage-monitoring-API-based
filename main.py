@@ -1631,7 +1631,7 @@ def render_dashboard():
         if df_all_outages.empty:
             st.error("Master Outages Data not found.")
         else:
-            st.markdown(f"**Comparing Period:** {start_date.strftime('%d %b %Y')} to {end_date.strftime('%d %b %Y')}")
+            st.markdown(f"**Comparing Period:** {start_date_2.strftime('%d %b %Y')} to {end_date_2.strftime('%d %b %Y')}")
             st.divider()
 
             def get_ly_date(d):
