@@ -64,18 +64,15 @@ def fetch_cloud_data(payload):
 
 # --- CORE DATA PIPELINE (Fetches from MotherDuck via Cloud Run) ---
 @st.cache_data(ttl=900, show_spinner="Fetching data from MotherDuck via Cloud Run...")
-# --- CORE DATA PIPELINE (Fetches from MotherDuck via Cloud Run) ---
-@st.cache_data(ttl=900, show_spinner="Fetching data from MotherDuck via Cloud Run...")
 def load_data_pipeline():
     now_ist = datetime.now(IST)
     
-    # These are datetime.date objects, we need them as YYYY-MM-DD strings
-    end_date_obj = now_ist.date()
-    start_date_obj = (now_ist - timedelta(days=180)).date()
-    
-    # Force explicit string formatting
-    end_date_str = end_date_obj.strftime("%Y-%m-%d")
-    start_date_str = start_date_obj.strftime("%Y-%m-%d")
+    # 1. Force the dates into the exact string format MotherDuck needs
+    end_date_str = now_ist.strftime("%Y-%m-%d")
+    start_date_str = (now_ist - timedelta(days=180)).strftime("%Y-%m-%d")
+
+    # 2. Add an alert right on the dashboard so we can see the exact strings
+    st.warning(f"DEBUG PIPELINE DATES: Start: {start_date_str} | End: {end_date_str}")
 
     # ==========================================
     # 1. OUTAGES LOGIC
@@ -85,9 +82,6 @@ def load_data_pipeline():
         "start_date": start_date_str, 
         "end_date": end_date_str
     })
-    
-    # Add a temporary print statement to verify the payload is correct
-    print(f"DEBUG - Outages Payload: start={start_date_str}, end={end_date_str}")
     
     df_outages = pd.DataFrame(outages_raw)
 
@@ -133,7 +127,7 @@ def load_data_pipeline():
             df_outages['Status_Calc'] = df_outages['Status'].apply(lambda x: 'Active' if str(x).strip().title() in ['Active', 'Open'] else 'Closed')
 
 
-    # ==========================================
+   # ==========================================
     # 2. PTW LOGIC
     # ==========================================
     ptw_raw = fetch_cloud_data({
@@ -141,9 +135,6 @@ def load_data_pipeline():
         "start_date": start_date_str, 
         "end_date": end_date_str
     })
-    
-    # Add a temporary print statement here too
-    print(f"DEBUG - PTW Payload: start={start_date_str}, end={end_date_str}")
     
     df_ptw = pd.DataFrame(ptw_raw)
 
