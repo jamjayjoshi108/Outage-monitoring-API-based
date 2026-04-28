@@ -1,5 +1,5 @@
 # Write aws_dashboard.py (file:1 refactored into render_aws_dashboard() function)
-aws_code = '''import streamlit as st
+import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta, timezone, date
 
@@ -772,7 +772,6 @@ def render_aws_dashboard():
                     st.dataframe(final_day.style.apply(highlight_long_ptw, axis=1).format({\'Duration (Hours)\': \'{:.2f}\'}).set_table_styles(HEADER_STYLES), width="stretch", hide_index=True)
                 else:
                     st.info(f"No PTW requests recorded specifically for {end_d3}.")
-'''
 
 with open('/root/aws_dashboard.py', 'w') as f:
     f.write(aws_code)
