@@ -1,129 +1,86 @@
 # # # # =========================================================================================================================
 # # # # V4 - working API AWS based clubbed under 🚨 Outage Monitoring
 # # # # =========================================================================================================================
-import os
-import requests
 import streamlit as st
-import pandas as pd
-from datetime import datetime, timedelta, timezone
-from dateutil.relativedelta import relativedelta
 from ptw_lm_app import render_ptw_lm_dashboard
-from aws_dashboard import render_aws_dashboard          # ← NEW IMPORT
+from aws_dashboard import render_aws_dashboard
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="Utility Operations Command Center", layout="wide")
 
-# --- INITIALIZE SESSION STATE FOR NAVIGATION ---
+# --- INITIALIZE SESSION STATE ---
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
-# --- GLOBAL TABLE HEADER STYLING ---
-HEADER_STYLES = [
-    {
-        'selector': 'th',
-        'props': [
-            ('background-color', '#004085 !important'),
-            ('color', '#FFC107 !important'),
-            ('font-weight', 'bold !important'),
-            ('text-align', 'center !important')
-        ]
-    },
-    {
-        'selector': 'th div',
-        'props': [
-            ('color', '#FFC107 !important'),
-            ('font-weight', 'bold !important')
-        ]
-    }
-]
-
 # ==========================================
-# PAGE: HOME (COMMAND CENTER)
+# HOME PAGE
 # ==========================================
 def render_home():
     st.markdown("""
         <style>
             .home-title {
-                text-align: center;
-                color: #004085;
-                font-weight: 700;
-                font-size: 2.5rem;
-                margin-top: 2rem;
-                margin-bottom: 0.5rem;
+                text-align: center; color: #004085; font-weight: 700;
+                font-size: 2.5rem; margin-top: 2rem; margin-bottom: 0.5rem;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }
             .home-subtitle {
-                text-align: center;
-                color: #555555;
-                font-size: 1.1rem;
-                margin-bottom: 3rem;
+                text-align: center; color: #555555;
+                font-size: 1.1rem; margin-bottom: 3rem;
             }
             div.stButton > button {
-                height: 90px;
-                font-size: 1.1rem;
-                font-weight: 600;
-                background-color: #ffffff;
-                color: #333333;
-                border: 1px solid #e0e0e0;
-                border-radius: 8px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-                transition: all 0.3s ease;
+                height: 90px; font-size: 1.1rem; font-weight: 600;
+                background-color: #ffffff; color: #333333;
+                border: 1px solid #e0e0e0; border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.3s ease;
             }
             div.stButton > button:hover {
-                border-color: #004085;
-                box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-                color: #004085;
-                transform: translateY(-2px);
+                border-color: #004085; box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+                color: #004085; transform: translateY(-2px);
             }
         </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div class='home-title'>⚡ Utility Operations Command Center</div>", unsafe_allow_html=True)
+    st.markdown("<div class='home-title'>Utility Operations Command Center</div>", unsafe_allow_html=True)
     st.markdown("<div class='home-subtitle'>Select an operational module below to access real-time dashboards and management tools.</div>", unsafe_allow_html=True)
 
     st.write("---")
     st.write("")
-    row1_col1, row1_col2, row1_col3 = st.columns(3, gap="large")
 
+    row1_col1, row1_col2, row1_col3 = st.columns(3, gap="large")
     with row1_col1:
-        if st.button("🛠️ PTW, LM-ALM Application", use_container_width=True):
+        if st.button("PTW, LM-ALM Application", use_container_width=True):
             st.session_state.page = 'ptw_app'
             st.rerun()
-
     with row1_col2:
-        if st.button("📉 Outage Reduction Plan (ORP)", use_container_width=True):
+        if st.button("Outage Reduction Plan (ORP)", use_container_width=True):
             st.toast("This module is currently offline or under development.")
-
     with row1_col3:
-        if st.button("🏢 RDSS", use_container_width=True):
+        if st.button("RDSS", use_container_width=True):
             st.toast("This module is currently offline or under development.")
 
     st.write("")
     row2_col1, row2_col2, row2_col3 = st.columns(3, gap="large")
-
     with row2_col1:
-        if st.button("📡 Smart Meter", use_container_width=True):
+        if st.button("Smart Meter", use_container_width=True):
             st.toast("This module is currently offline or under development.")
-
     with row2_col2:
-        if st.button("🔌 New Connections", use_container_width=True):
+        if st.button("New Connections", use_container_width=True):
             st.toast("This module is currently offline or under development.")
-
     with row2_col3:
-        if st.button("🚨 Outage Monitoring", use_container_width=True):
-            st.session_state.page = 'dashboard'   # triggers render_aws_dashboard()
+        if st.button("Outage Monitoring", use_container_width=True):
+            st.session_state.page = 'dashboard'
             st.rerun()
 
-
 # ==========================================
-# ROUTER LOGIC
+# ROUTER
 # ==========================================
 if st.session_state.page == 'home':
     render_home()
 elif st.session_state.page == 'dashboard':
-    render_aws_dashboard()                          # ← CALLS AWS DASHBOARD
+    render_aws_dashboard()
 elif st.session_state.page == 'ptw_app':
     render_ptw_lm_dashboard()
+
 
 
 # # # # =========================================================================================================================
