@@ -5,6 +5,7 @@ import streamlit as st
 from ptw_lm_app import render_ptw_lm_dashboard
 from aws_dashboard import render_aws_dashboard
 
+
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="Utility Operations Command Center", layout="wide")
 
@@ -74,10 +75,11 @@ def render_home():
 # ==========================================
 # ROUTER
 # ==========================================
+
 if st.session_state.page == 'home':
     render_home()
 elif st.session_state.page == 'dashboard':
-    render_aws_dashboard()
+    render_aws_dashboard()        # ← replaces old render_dashboard()
 elif st.session_state.page == 'ptw_app':
     render_ptw_lm_dashboard()
 
