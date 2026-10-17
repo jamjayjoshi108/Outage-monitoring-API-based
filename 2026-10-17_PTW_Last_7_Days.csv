@@ -1,0 +1,541 @@
+PTW Request ID,Circle,Feeder,Status,Request Date,Start Date
+27900,JALANDHAR,BADALA(FL16),Permit Request Submitted (Permit not active),2026-10-17T12:36:29Z,2026-10-17T12:35:00Z
+27899,SANGRUR,"BALRAN(FL11), PAPRA(main+branch)(FL15)",Permit Request Submitted (Permit not active),2026-10-17T12:36:08Z,2026-10-17T12:35:00Z
+27898,SANGRUR,11 KV Nagri UPS(FL20),Permit Request Submitted (Permit not active),2026-10-17T12:35:36Z,2026-10-17T12:33:00Z
+27897,GURDASPUR,Kiari(FL06),Approved/ Active Permit,2026-10-17T12:30:46Z,2026-10-17T12:30:00Z
+27896,MUKATSAR,"11 KV SUKHCHAIN(FL02), 11 KV SARDARPURA UPS(FL06), 11 KV Bhagsar UPS(FL07)",Permit Request Submitted (Permit not active),2026-10-17T12:26:15Z,2026-10-17T12:25:00Z
+27895,GURDASPUR,"Azizpur(FL03), Irrigation(FL05)",Approved/ Active Permit,2026-10-17T12:24:13Z,2026-10-17T12:23:00Z
+27894,MUKATSAR,11 KV Chirag dhani(FL17),Approved/ Active Permit,2026-10-17T12:15:59Z,2026-10-17T12:14:00Z
+27893,JALANDHAR,KHIALA(FL13),Cancellation Request Approved (Permit not active),2026-10-17T12:06:03Z,2026-10-17T12:05:00Z
+27892,PATIALA,NARIANA(FL10),Approved/ Active Permit,2026-10-17T12:03:04Z,2026-10-17T12:01:00Z
+27891,JALANDHAR,GURU GOBIND SINGH AVENUE(FL10),Cancellation Request Approved (Permit not active),2026-10-17T11:50:31Z,2026-10-17T11:49:00Z
+27890,GURDASPUR,"ARYA NAGAR(FL19), CITY-3(FL15)",Cancellation Request Approved (Permit not active),2026-10-17T11:42:59Z,2026-10-17T11:41:00Z
+27889,KAPURTHALA,"Fazalwal(FL21), UPS Nagal Ambian(FL09)",Approved/ Active Permit,2026-10-17T11:33:38Z,2026-10-17T11:31:00Z
+27888,KHANNA,Loharmajra(FL09),Cancellation Request Approved (Permit not active),2026-10-17T11:32:46Z,2026-10-17T11:32:00Z
+27887,NAWANSHAHR,TEHSIL COMPLEX GSR(FL16),Approved/ Active Permit,2026-10-17T11:29:33Z,2026-10-17T11:28:00Z
+27886,PATIALA,BAGRIAN(FL03),Approved/ Active Permit,2026-10-17T11:25:47Z,2026-10-17T11:25:00Z
+27885,CITY WEST LUDHIANA,JAMMU COLONY(FL02),Cancellation Request Approved (Permit not active),2026-10-17T11:21:22Z,2026-10-17T11:20:00Z
+27884,GURDASPUR,Goal Mandir(FL02),Approved/ Active Permit,2026-10-17T11:17:47Z,2026-10-17T11:17:00Z
+27883,BARNALA,SHRI RAVIDASS NAGAR(FL04),Approved/ Active Permit,2026-10-17T11:17:31Z,2026-10-17T11:15:00Z
+27882,GURDASPUR,Goal Mandir(FL02),Rejected BY SSA/SSO,2026-10-17T11:01:42Z,2026-10-17T11:00:00Z
+27881,KHANNA,LANDHA BOWANI(FL09),Approved/ Active Permit,2026-10-17T10:57:52Z,2026-10-17T10:54:00Z
+27880,JALANDHAR,11 KV TAGORE HOSPITAL(FL18),Approved/ Active Permit,2026-10-17T10:57:03Z,2026-10-17T10:55:00Z
+27879,SANGRUR,Maula Patti(FL10),Cancellation Request Approved (Permit not active),2026-10-17T10:54:24Z,2026-10-17T10:53:00Z
+27878,SANGRUR,"JALOOR NEW(FL11), JALOOR(FL10)",Cancellation Request Approved (Permit not active),2026-10-17T10:46:32Z,2026-10-17T10:44:00Z
+27877,SANGRUR,"Azur Renewable(FL19), 24 HOURS NIDAMPUR(FL07), CITY NADAMPUR(FL05), MATTRAN UPS(FL21), UPS BALAD KALAN(FL11)",Approved/ Active Permit,2026-10-17T10:43:03Z,2026-10-17T10:41:00Z
+27876,MUKATSAR,"11 KV SAIDANWALI(FL07), 11 KV Dharampura(FL09)",Cancellation Request Approved (Permit not active),2026-10-17T10:41:57Z,2026-10-17T10:40:00Z
+27875,KAPURTHALA,"Chawinda(FL06), UPS MALLIWAL(FL16)",Approved/ Active Permit,2026-10-17T10:30:24Z,2026-10-17T10:29:00Z
+27874,SANGRUR,11 KV PATIALA ROAD UPS(FL18),Cancellation Request Approved (Permit not active),2026-10-17T10:30:11Z,2026-10-17T10:29:00Z
+27873,KHANNA,JALVERI(FL24),Cancellation Request Approved (Permit not active),2026-10-17T10:28:26Z,2026-10-17T10:24:00Z
+27872,CITY WEST LUDHIANA,GOBIND NAGAR FEEDER(FL22),Approved/ Active Permit,2026-10-17T10:26:40Z,2026-10-17T10:25:00Z
+27871,GURDASPUR,Islampur No. 1(FL17),Cancellation Request Approved (Permit not active),2026-10-17T10:23:52Z,2026-10-17T10:23:00Z
+27870,GURDASPUR,Abrol Nagar(FL10),Approved/ Active Permit,2026-10-17T10:23:27Z,2026-10-17T10:22:00Z
+27869,ROPAR,11kv kotla hydle feeder(FL08),Approved/ Active Permit,2026-10-17T10:06:12Z,2026-10-17T10:05:00Z
+27868,SANGRUR,11 KV HEERO KALAN UPS(FL13),Cancellation Request Approved (Permit not active),2026-10-17T10:00:34Z,2026-10-17T09:59:00Z
+27867,CITY AMRITSAR,GOKAL KA BAGH(FL17),Cancellation Request Approved (Permit not active),2026-10-17T09:53:09Z,2026-10-17T09:50:00Z
+27866,GURDASPUR,"Kanwan(FL09), Ghesal(FL11), Gujran Lahri(FL05)",Cancellation Request Approved (Permit not active),2026-10-17T09:52:15Z,2026-10-17T09:48:00Z
+27865,SUB URBAN AMRITSAR,NAG KALAN(FL01),Cancellation Request Approved (Permit not active),2026-10-17T09:52:01Z,2026-10-17T09:50:00Z
+27864,KHANNA,Bhattian(FL08),Cancellation Request Approved (Permit not active),2026-10-17T09:44:41Z,2026-10-17T09:42:00Z
+27863,BARNALA,Kattu CAT-I(FL05),Approved/ Active Permit,2026-10-17T09:42:46Z,2026-10-17T09:41:00Z
+27862,MUKATSAR,"11 KV Dhani Bisehesarnath(FL02), 11 KV Azimgarh Urban(FL03)",Cancellation Request Approved (Permit not active),2026-10-17T09:38:34Z,2026-10-17T09:38:00Z
+27861,BARNALA,Raikot Road Industry Cat-2(FL19),Cancellation Request Approved (Permit not active),2026-10-17T07:51:17Z,2026-10-17T07:50:00Z
+27860,BARNALA,Raikot Road Industry Cat-2(FL19),Rejected BY SSA/SSO,2026-10-17T07:49:42Z,2026-10-17T07:48:00Z
+27859,BARNALA,MALERKOTLA UPS(FL05),Cancellation Request Approved (Permit not active),2026-10-17T06:50:23Z,2026-10-17T06:49:00Z
+27858,JALANDHAR,11 KV Deol Nagar(FL19),Cancellation Request Approved (Permit not active),2026-10-16T20:00:32Z,2026-10-16T19:59:00Z
+27857,CITY WEST LUDHIANA,HOUSEFED(FL14),Cancellation Request Approved (Permit not active),2026-10-16T19:09:25Z,2026-10-16T19:08:00Z
+27856,CITY WEST LUDHIANA,BDS Nagar(FL11),Cancellation Request Approved (Permit not active),2026-10-16T18:49:45Z,2026-10-16T18:49:00Z
+27855,MUKATSAR,"11 KV GANGA NAGAR ROAD(FL01), 11 KV Alamgarh(FL03)",Cancellation Request Approved (Permit not active),2026-10-16T18:35:59Z,2026-10-16T18:34:00Z
+27854,JALANDHAR,11 KV Deol Nagar(FL19),Cancellation Request Approved (Permit not active),2026-10-16T18:18:13Z,2026-10-16T18:16:00Z
+27853,SANGRUR,11kv Bank road(FL28),Cancellation Request Approved (Permit not active),2026-10-16T17:56:24Z,2026-10-16T17:55:00Z
+27852,JALANDHAR,"NUCON(FL11), PANJPEER(FL04), BASANT(FL08)",Cancellation Request Approved (Permit not active),2026-10-16T17:55:34Z,2026-10-16T17:54:00Z
+27851,JALANDHAR,11KV GTB NAGAR(FL07),Cancellation Request Approved (Permit not active),2026-10-16T17:55:15Z,2026-10-16T17:53:00Z
+27850,SANGRUR,11 KV Nagri UPS(FL20),Cancellation Request Approved (Permit not active),2026-10-16T17:55:15Z,2026-10-16T17:53:00Z
+27849,SUB URBAN AMRITSAR,VEER GARDEN(FL13),Cancellation Request Approved (Permit not active),2026-10-16T17:53:34Z,2026-10-16T17:52:00Z
+27848,PATIALA,11 KV RADHA SWAMI ROAD(FL20),Cancellation Request Approved (Permit not active),2026-10-16T17:41:21Z,2026-10-16T17:39:00Z
+27847,SANGRUR,Dharampura(FL15),Cancellation Request Approved (Permit not active),2026-10-16T17:19:23Z,2026-10-16T17:15:00Z
+27846,GURDASPUR,"Saidipur(FL02), CITY AWANKHA(FL14), Manj(FL08)",Cancellation Request Approved (Permit not active),2026-10-16T17:19:02Z,2026-10-16T17:17:00Z
+27845,SANGRUR,MOONAK CITY(FL08),Cancellation Request Approved (Permit not active),2026-10-16T17:15:45Z,2026-10-16T17:15:00Z
+27844,MUKATSAR,"11 KV SUKHCHAIN(FL02), 11 KV SARDARPURA UPS(FL06), 11 KV Bhagsar UPS(FL07)",Cancellation Request Approved (Permit not active),2026-10-16T17:00:25Z,2026-10-16T16:59:00Z
+27843,KAPURTHALA,KADUPUR(FL01),Cancellation Request Approved (Permit not active),2026-10-16T16:46:16Z,2026-10-16T16:41:00Z
+27842,MUKATSAR,11 KV GADDAN DOB(FL05),Cancellation Request Approved (Permit not active),2026-10-16T16:45:09Z,2026-10-16T16:44:00Z
+27841,NAWANSHAHR,BIRAMPUR(FL21),Cancellation Request Approved (Permit not active),2026-10-16T16:08:20Z,2026-10-16T16:06:00Z
+27840,MUKATSAR,PANJKOSI(FL06),Cancellation Request Approved (Permit not active),2026-10-16T15:49:09Z,2026-10-16T15:48:00Z
+27839,JALANDHAR,RAJPUT NAGAR(FL03),Cancellation Request Approved (Permit not active),2026-10-16T15:14:12Z,2026-10-16T15:13:00Z
+27838,BATHINDA,AKLIA(FL04),Cancellation Request Approved (Permit not active),2026-10-16T15:13:05Z,2026-10-16T15:10:00Z
+27837,PATIALA,UPS DHADOGAL(FL29),Cancellation Request Approved (Permit not active),2026-10-16T15:10:35Z,2026-10-16T15:08:00Z
+27836,ROPAR,Indira nagar(FL10),Permit Request Submitted (Permit not active),2026-10-16T15:09:43Z,2026-10-16T15:08:00Z
+27835,PATIALA,SURAJPUR(FL14),Permit Request Submitted (Permit not active),2026-10-16T15:03:05Z,2026-10-16T14:58:00Z
+27834,PATIALA,Dashmesh Nagar(FL05),Cancellation Request Approved (Permit not active),2026-10-16T14:58:07Z,2026-10-16T14:57:00Z
+27833,SANGRUR,"11 KV HEERO KALAN AP(FL08), 11 KV JHARON AP(FL09), 11 KV HEERO KALAN UPS(FL13)",Cancellation Request Approved (Permit not active),2026-10-16T14:53:47Z,2026-10-16T14:52:00Z
+27832,GURDASPUR,Behrian(FL13),Cancellation Request Approved (Permit not active),2026-10-16T14:47:02Z,2026-10-16T14:46:00Z
+27831,SANGRUR,11 KV PATIALA ROAD UPS(FL18),Cancellation Request Approved (Permit not active),2026-10-16T14:37:34Z,2026-10-16T14:35:00Z
+27830,JALANDHAR,KALRA(FL03),Cancellation Request Approved (Permit not active),2026-10-16T14:30:17Z,2026-10-16T14:29:00Z
+27829,JALANDHAR,"11 kv Euro(FL30), Mahajan feeder(Fl08)",Cancellation Request Approved (Permit not active),2026-10-16T14:28:11Z,2026-10-16T14:27:00Z
+27828,SANGRUR,11 KV HEERO KALAN URBAN(FL05),Cancellation Request Approved (Permit not active),2026-10-16T14:26:44Z,2026-10-16T14:25:00Z
+27827,MUKATSAR,11 KV TAJA PATTI(FL04),Cancellation Request Approved (Permit not active),2026-10-16T14:08:36Z,2026-10-16T14:02:00Z
+27826,ROPAR,11 KV Brari(FL13),Permit Request Submitted (Permit not active),2026-10-16T14:05:02Z,2026-10-16T14:04:00Z
+27825,CITY WEST LUDHIANA,Kiran Vihar(FL20),Cancellation Request Approved (Permit not active),2026-10-16T13:27:46Z,2026-10-16T13:26:00Z
+27824,JALANDHAR,Shivaji Nagar(FL09),Cancellation Request Approved (Permit not active),2026-10-16T13:26:24Z,2026-10-16T13:24:00Z
+27823,TARN TARAN,MEHTA URBAN-II(FL05),Cancellation Request Approved (Permit not active),2026-10-16T13:24:25Z,2026-10-16T13:22:00Z
+27822,GURDASPUR,Kiari(FL06),Cancellation Request Approved (Permit not active),2026-10-16T13:17:34Z,2026-10-16T13:16:00Z
+27821,SANGRUR,11 KV HAMJEHRI(FL09),Cancellation Request Approved (Permit not active),2026-10-16T13:09:21Z,2026-10-16T13:07:00Z
+27820,GURDASPUR,Tharial(FL5),Cancellation Request Approved (Permit not active),2026-10-16T12:58:15Z,2026-10-16T12:57:00Z
+27819,KHANNA,Kheri jattan(fl22),Cancellation Request Approved (Permit not active),2026-10-16T12:36:23Z,2026-10-16T12:35:00Z
+27818,CITY AMRITSAR,SHIVALA ROAD(FL09),Cancellation Request Approved (Permit not active),2026-10-16T12:26:22Z,2026-10-16T12:25:00Z
+27817,MUKATSAR,11 KV TAJA PATTI(FL04),Cancellation Request Approved (Permit not active),2026-10-16T12:09:30Z,2026-10-16T12:08:00Z
+27816,GURDASPUR,Raavi(FL14),Cancellation Request Approved (Permit not active),2026-10-16T11:57:29Z,2026-10-16T11:54:00Z
+27815,MUKATSAR,"11 KV Kera Khera(FL03), 11 KV Dhaban Kokrian(FL04)",Cancellation Request Approved (Permit not active),2026-10-16T11:36:37Z,2026-10-16T11:35:00Z
+27814,MUKATSAR,11 KV Alamgarh(FL03),Cancellation Request Approved (Permit not active),2026-10-16T11:33:24Z,2026-10-16T11:32:00Z
+27813,SANGRUR,Kanjla C-1(FL21),Cancellation Request Approved (Permit not active),2026-10-16T11:32:47Z,2026-10-16T11:31:00Z
+27812,KAPURTHALA,Civil Hospital(FL16),Cancellation Request Approved (Permit not active),2026-10-16T11:17:24Z,2026-10-16T11:13:00Z
+27811,GURDASPUR,Islampur No. 1(FL17),Cancellation Request Approved (Permit not active),2026-10-16T11:17:05Z,2026-10-16T11:15:00Z
+27810,GURDASPUR,GAJIKOT(FL02),Cancellation Request Approved (Permit not active),2026-10-16T11:13:50Z,2026-10-16T11:12:00Z
+27809,GURDASPUR,Ghurala(FL03),Cancellation Request Approved (Permit not active),2026-10-16T11:11:46Z,2026-10-16T11:09:00Z
+27808,KHANNA,Attapur(FL11),Cancellation Request Approved (Permit not active),2026-10-16T11:11:13Z,2026-10-16T11:10:00Z
+27807,CITY WEST LUDHIANA,DHANDRA(FL05),Cancellation Request Approved (Permit not active),2026-10-16T11:09:36Z,2026-10-16T11:08:00Z
+27806,MUKATSAR,"11 KV SAIDANWALI(FL07), 11 KV Dharampura(FL09)",Cancellation Request Approved (Permit not active),2026-10-16T10:58:29Z,2026-10-16T10:57:00Z
+27805,SANGRUR,MASTUANA SAHIB(FL10),Cancellation Request Approved (Permit not active),2026-10-16T10:57:25Z,2026-10-16T10:56:00Z
+27804,KHANNA,Barmalipur city(FL09),Cancellation Request Approved (Permit not active),2026-10-16T10:55:57Z,2026-10-16T10:54:00Z
+27803,MUKATSAR,PANJKOSI(FL06),Cancellation Request Approved (Permit not active),2026-10-16T10:51:31Z,2026-10-16T10:50:00Z
+27802,KHANNA,RASULARA(FL05),Cancellation Request Approved (Permit not active),2026-10-16T10:49:28Z,2026-10-16T10:47:00Z
+27801,SANGRUR,11 kV triveni(FL04),Cancellation Request Approved (Permit not active),2026-10-16T10:27:50Z,2026-10-16T10:26:00Z
+27800,SANGRUR,Saho Patti(FL03),Cancellation Request Approved (Permit not active),2026-10-16T10:22:06Z,2026-10-16T10:21:00Z
+27799,MUKATSAR,11 KV GANGA NAGAR ROAD(FL01),Cancellation Request Approved (Permit not active),2026-10-16T10:03:45Z,2026-10-16T10:02:00Z
+27798,KHANNA,BISHANPURA(FL16),Cancellation Request Approved (Permit not active),2026-10-16T09:57:24Z,2026-10-16T09:54:00Z
+27797,KHANNA,ATTEWALI(FL03),Cancellation Request Approved (Permit not active),2026-10-16T09:45:06Z,2026-10-16T09:43:00Z
+27796,KHANNA,ATTEWALI(FL03),Rejected BY SSA/SSO,2026-10-16T09:40:15Z,2026-10-16T09:39:00Z
+27795,KHANNA,JODHPUR(FL12),Cancellation Request Approved (Permit not active),2026-10-16T09:36:10Z,2026-10-16T09:34:00Z
+27794,JALANDHAR,JULKA ESTATE(FL02),Cancellation Request Approved (Permit not active),2026-10-16T00:48:16Z,2026-10-16T00:46:00Z
+27793,CITY AMRITSAR,BIBI KAULAN JI(FL09),Cancellation Request Approved (Permit not active),2026-10-15T21:44:44Z,2026-10-15T21:43:00Z
+27792,SANGRUR,11 KV NAVA BAZAR C-1(FL-2),Cancellation Request Approved (Permit not active),2026-10-15T21:28:05Z,2026-10-15T21:27:00Z
+27791,CITY AMRITSAR,SERVER PURA(FL11),Active But Cancellation Request Submitted,2026-10-15T21:13:34Z,2026-10-15T21:12:00Z
+27790,CITY WEST LUDHIANA,JAWADDI(FL17),Cancellation Request Approved (Permit not active),2026-10-15T21:02:12Z,2026-10-15T20:59:00Z
+27789,JALANDHAR,11 KV BHAGAT SINGH COLONY(FL08),Cancellation Request Approved (Permit not active),2026-10-15T20:22:43Z,2026-10-15T20:20:00Z
+27788,CITY WEST LUDHIANA,Ranchi Colony(D028),Cancellation Request Approved (Permit not active),2026-10-15T20:05:23Z,2026-10-15T19:58:00Z
+27787,MUKATSAR,11 KV SAIDANWALI(FL07),Cancellation Request Approved (Permit not active),2026-10-15T19:13:42Z,2026-10-15T19:12:00Z
+27786,PATIALA,Hospital feeder(FL25),Cancellation Request Approved (Permit not active),2026-10-15T19:10:53Z,2026-10-15T19:10:00Z
+27785,CITY WEST LUDHIANA,MODEL TOWN(FL09),Cancellation Request Approved (Permit not active),2026-10-15T18:37:59Z,2026-10-15T18:37:00Z
+27784,JALANDHAR,D BLOCK(FL05),Cancellation Request Approved (Permit not active),2026-10-15T17:59:25Z,2026-10-15T17:58:00Z
+27783,CITY WEST LUDHIANA,MODEL HOUSE(FL07),Cancellation Request Approved (Permit not active),2026-10-15T17:41:36Z,2026-10-15T17:38:00Z
+27782,JALANDHAR,INDUSTRIAL-3(FL13),Cancellation Request Approved (Permit not active),2026-10-15T17:41:25Z,2026-10-15T17:38:00Z
+27781,PATIALA,SARHIND ROAD(FL08),Cancellation Request Approved (Permit not active),2026-10-15T17:39:01Z,2026-10-15T17:38:00Z
+27780,GURDASPUR,ARYA NAGAR(FL19),Cancellation Request Approved (Permit not active),2026-10-15T17:32:41Z,2026-10-15T17:32:00Z
+27779,KHANNA,"PAGRO(FL22), NABIPUR(FL11)",Cancellation Request Approved (Permit not active),2026-10-15T17:30:40Z,2026-10-15T17:28:00Z
+27778,KAPURTHALA,UPS Seowal(FL01),Cancellation Request Approved (Permit not active),2026-10-15T17:06:22Z,2026-10-15T17:05:00Z
+27777,KHANNA,Main Bazar(FL07),Cancellation Request Approved (Permit not active),2026-10-15T16:52:59Z,2026-10-15T16:52:00Z
+27776,MUKATSAR,11 KV SAIDANWALI(FL07),Cancellation Request Approved (Permit not active),2026-10-15T16:51:42Z,2026-10-15T16:50:00Z
+27775,NAWANSHAHR,DUGRI(FL15),Cancellation Request Approved (Permit not active),2026-10-15T16:40:27Z,2026-10-15T16:39:00Z
+27774,JALANDHAR,11KV PARTAP BHAG(FL22),Cancellation Request Approved (Permit not active),2026-10-15T16:22:48Z,2026-10-15T16:22:00Z
+27773,MUKATSAR,KRISHNA NAGRI(FL02),Cancellation Request Approved (Permit not active),2026-10-15T16:18:16Z,2026-10-15T16:17:00Z
+27772,KHANNA,MALERKOTLA ROAD(FL01),Cancellation Request Approved (Permit not active),2026-10-15T16:07:00Z,2026-10-15T15:58:00Z
+27771,GURDASPUR,11kv nirankari(Fl12),Cancellation Request Approved (Permit not active),2026-10-15T16:02:49Z,2026-10-15T16:01:00Z
+27770,MUKATSAR,"11 KALLER KHERA(FL01), JANDWALA HANUWANTA(FL02), BHANGER KHERA(FL03)",Cancellation Request Approved (Permit not active),2026-10-15T15:48:22Z,2026-10-15T15:47:00Z
+27769,KHANNA,Jalkheri(FL14),Cancellation Request Approved (Permit not active),2026-10-15T15:31:46Z,2026-10-15T15:30:00Z
+27768,SANGRUR,KALBANJARA UPS(FL16),Cancellation Request Approved (Permit not active),2026-10-15T15:22:39Z,2026-10-15T15:21:00Z
+27767,SANGRUR,Mullowal(FL03),Cancellation Request Approved (Permit not active),2026-10-15T15:14:11Z,2026-10-15T15:11:00Z
+27766,SUB URBAN AMRITSAR,JALALPURA UPS(FL02),Cancellation Request Approved (Permit not active),2026-10-15T15:13:25Z,2026-10-15T15:11:00Z
+27765,MUKATSAR,11 KV Kera Khera(FL03),Cancellation Request Approved (Permit not active),2026-10-15T15:10:52Z,2026-10-15T15:09:00Z
+27764,SANGRUR,DIALPURA(FL03),Rejected BY SSA/SSO,2026-10-15T15:07:19Z,2026-10-15T15:06:00Z
+27763,MUKATSAR,11 KV Dhani Bisehesarnath(FL02),Cancellation Request Approved (Permit not active),2026-10-15T14:55:29Z,2026-10-15T14:54:00Z
+27762,SANGRUR,"ALAL AP(FL26), Mullowal(FL03)",Permit Request Submitted (Permit not active),2026-10-15T14:53:56Z,2026-10-15T14:51:00Z
+27761,KHANNA,DANA MANDI(FL19),Cancellation Request Approved (Permit not active),2026-10-15T14:50:31Z,2026-10-15T14:48:00Z
+27760,SUB URBAN AMRITSAR,AJNALA ROAD(FL06),Cancellation Request Approved (Permit not active),2026-10-15T14:47:52Z,2026-10-15T14:47:00Z
+27759,GURDASPUR,11kv nirankari(Fl12),Cancellation Request Approved (Permit not active),2026-10-15T14:42:27Z,2026-10-15T14:41:00Z
+27758,NAWANSHAHR,TEHSIL COMPLEX GSR(FL16),Cancellation Request Approved (Permit not active),2026-10-15T14:18:57Z,2026-10-15T14:18:00Z
+27757,CITY AMRITSAR,MALL ROAD(FL15),Cancellation Request Approved (Permit not active),2026-10-15T14:18:03Z,2026-10-15T14:17:00Z
+27756,CITY AMRITSAR,MALL ROAD(FL15),Rejected BY SSA/SSO,2026-10-15T14:17:05Z,2026-10-15T14:15:00Z
+27755,KHANNA,CITY ONE(FL05),Cancellation Request Approved (Permit not active),2026-10-15T14:13:44Z,2026-10-15T14:13:00Z
+27754,MUKATSAR,11 KV SIDHU NAGRI(FL05),Cancellation Request Approved (Permit not active),2026-10-15T14:09:58Z,2026-10-15T14:09:00Z
+27753,PATIALA,Vikas Colony(FL21),Cancellation Request Approved (Permit not active),2026-10-15T14:07:12Z,2026-10-15T14:06:00Z
+27752,MUKATSAR,KRISHNA NAGRI(FL02),Cancellation Request Approved (Permit not active),2026-10-15T14:00:07Z,2026-10-15T13:58:00Z
+27751,CITY AMRITSAR,GOBIND PARK(FL07),Cancellation Request Approved (Permit not active),2026-10-15T13:58:37Z,2026-10-15T13:55:00Z
+27750,KHANNA,IKOLAHI(FL02),Cancellation Request Approved (Permit not active),2026-10-15T13:42:23Z,2026-10-15T13:41:00Z
+27749,CITY WEST LUDHIANA,GURU GIAN VIHAR(FL14),Cancellation Request Approved (Permit not active),2026-10-15T13:42:00Z,2026-10-15T13:41:00Z
+27748,GURDASPUR,11kv nirankari(Fl12),Cancellation Request Approved (Permit not active),2026-10-15T13:36:59Z,2026-10-15T13:36:00Z
+27747,SANGRUR,Sunam Road(FL10),Cancellation Request Approved (Permit not active),2026-10-15T13:31:21Z,2026-10-15T13:30:00Z
+27746,MUKATSAR,"11 KV SITO(FL03), 11 KV SARDARPURA UPS(FL06), 11 KV Bhagsar UPS(FL07)",Cancellation Request Approved (Permit not active),2026-10-15T13:23:19Z,2026-10-15T13:22:00Z
+27745,JALANDHAR,GURUDWARA SHIV NAGAR(FL06),Cancellation Request Approved (Permit not active),2026-10-15T13:08:23Z,2026-10-15T13:06:00Z
+27744,MUKATSAR,"11 KV SAIDANWALI(FL07), 11 KV Dharampura(FL09), 11 KV Telupura(FL10)",Cancellation Request Approved (Permit not active),2026-10-15T13:04:35Z,2026-10-15T13:03:00Z
+27743,GURDASPUR,11kv nirankari(Fl12),Cancellation Request Approved (Permit not active),2026-10-15T13:03:11Z,2026-10-15T13:02:00Z
+27742,GURDASPUR,"TALIBPUR(FL03), GAJIKOT(FL02)",Cancellation Request Approved (Permit not active),2026-10-15T13:02:22Z,2026-10-15T13:01:00Z
+27741,SUB URBAN AMRITSAR,HOUSING BOARD COLONY(FL06),Cancellation Request Approved (Permit not active),2026-10-15T12:46:08Z,2026-10-15T12:45:00Z
+27740,GURDASPUR,"Manj(FL08), Dalia(FL03)",Cancellation Request Approved (Permit not active),2026-10-15T12:38:08Z,2026-10-15T12:37:00Z
+27739,KHANNA,PAGRO(FL22),Cancellation Request Approved (Permit not active),2026-10-15T12:31:10Z,2026-10-15T12:30:00Z
+27738,MUKATSAR,11 KV TARA ESTATE(FL09),Cancellation Request Approved (Permit not active),2026-10-15T12:21:02Z,2026-10-15T12:20:00Z
+27737,JALANDHAR,11 KV MEDLEY(FL15),Cancellation Request Approved (Permit not active),2026-10-15T12:07:19Z,2026-10-15T12:07:00Z
+27736,KHANNA,RAM RAJAYA(FL12),Cancellation Request Approved (Permit not active),2026-10-15T12:06:44Z,2026-10-15T12:06:00Z
+27735,JALANDHAR,11KV Mithapur Feeder(FL07),Cancellation Request Approved (Permit not active),2026-10-15T12:04:51Z,2026-10-15T12:04:00Z
+27734,SANGRUR,DYALGARH(FL09),Cancellation Request Approved (Permit not active),2026-10-15T11:57:34Z,2026-10-15T11:56:00Z
+27733,SUB URBAN AMRITSAR,C-BLOCK RANJIT AVENUE(FL12),Cancellation Request Approved (Permit not active),2026-10-15T11:42:33Z,2026-10-15T11:42:00Z
+27732,NAWANSHAHR,SADHOWAL(FL05),Cancellation Request Approved (Permit not active),2026-10-15T11:42:16Z,2026-10-15T11:40:00Z
+27731,GURDASPUR,"Azizpur(FL03), Behrian(FL13)",Cancellation Request Approved (Permit not active),2026-10-15T11:37:00Z,2026-10-15T11:35:00Z
+27730,JALANDHAR,11KV Baba Makhan Shah Lubana(FL01),Cancellation Request Approved (Permit not active),2026-10-15T11:36:40Z,2026-10-15T11:35:00Z
+27729,SUB URBAN AMRITSAR,HOUSING BOARD COLONY(FL06),Cancellation Request Approved (Permit not active),2026-10-15T11:32:25Z,2026-10-15T11:31:00Z
+27728,KHANNA,MADHOPUR(FL08),Approved/ Active Permit,2026-10-15T11:29:25Z,2026-10-15T11:27:00Z
+27727,CITY WEST LUDHIANA,Kiran Vihar(FL20),Cancellation Request Approved (Permit not active),2026-10-15T11:12:08Z,2026-10-15T11:11:00Z
+27726,MUKATSAR,"USMAAN KHERA(FL04), 11 KV Ganganagar Road(FL05)",Cancellation Request Approved (Permit not active),2026-10-15T11:05:04Z,2026-10-15T11:04:00Z
+27725,SUB URBAN AMRITSAR,SEC-4 RANJIT AVENUE(FL11),Cancellation Request Approved (Permit not active),2026-10-15T11:04:46Z,2026-10-15T11:03:00Z
+27724,MUKATSAR,"11 KALLER KHERA(FL01), JANDWALA HANUWANTA(FL02)",Cancellation Request Approved (Permit not active),2026-10-15T11:03:57Z,2026-10-15T11:02:00Z
+27723,KHANNA,Rachna Fastner(FL07),Rejected BY SSA/SSO,2026-10-15T11:00:38Z,2026-10-15T10:59:00Z
+27722,KHANNA,Rachna Fastner(FL07),Rejected BY SSA/SSO,2026-10-15T10:55:30Z,2026-10-15T10:54:00Z
+27721,KHANNA,Rachna Fastner(FL07),Rejected BY SSA/SSO,2026-10-15T10:52:51Z,2026-10-15T10:52:00Z
+27720,CITY WEST LUDHIANA,JAWADDI(FL17),Cancellation Request Approved (Permit not active),2026-10-15T10:44:40Z,2026-10-15T10:43:00Z
+27719,SANGRUR,JHALOOR UPS(FL14),Cancellation Request Approved (Permit not active),2026-10-15T10:44:29Z,2026-10-15T10:43:00Z
+27718,CITY WEST LUDHIANA,ADARSH(FL02),Cancellation Request Approved (Permit not active),2026-10-15T10:29:42Z,2026-10-15T10:29:00Z
+27717,CITY AMRITSAR,MALL ROAD(FL15),Cancellation Request Approved (Permit not active),2026-10-15T10:16:49Z,2026-10-15T10:15:00Z
+27716,JALANDHAR,11 KV J.J.COLONY(FL11),Cancellation Request Approved (Permit not active),2026-10-15T10:15:21Z,2026-10-15T10:15:00Z
+27715,SUB URBAN AMRITSAR,"C-BLOCK RANJIT AVENUE(FL12), HOUSING BOARD COLONY(FL06)",Cancellation Request Approved (Permit not active),2026-10-15T10:08:26Z,2026-10-15T10:03:00Z
+27714,NAWANSHAHR,Bundala Cat-1(FL01),Cancellation Request Approved (Permit not active),2026-10-15T09:53:23Z,2026-10-15T09:49:00Z
+27713,KHANNA,RURKI UPS(FL09),Cancellation Request Approved (Permit not active),2026-10-15T09:45:21Z,2026-10-15T09:42:00Z
+27712,MUKATSAR,11 KV Sappan wali(FL11),Cancellation Request Approved (Permit not active),2026-10-15T09:40:28Z,2026-10-15T09:39:00Z
+27711,JALANDHAR,GURU GOBIND SINGH AVENUE(FL10),Cancellation Request Approved (Permit not active),2026-10-15T09:39:50Z,2026-10-15T09:39:00Z
+27710,SUB URBAN AMRITSAR,Faizpur(FL17),Cancellation Request Approved (Permit not active),2026-10-15T09:38:28Z,2026-10-15T09:37:00Z
+27709,SUB URBAN AMRITSAR,BABA SHRI CHAND AVNUE(FL12),Cancellation Request Approved (Permit not active),2026-10-15T09:30:10Z,2026-10-15T09:29:00Z
+27708,SANGRUR,Chhajli road(FL24),Cancellation Request Approved (Permit not active),2026-10-15T08:56:46Z,2026-10-15T08:56:00Z
+27707,SANGRUR,11kv Bank road(FL28),Cancellation Request Approved (Permit not active),2026-10-15T08:25:31Z,2026-10-15T08:24:00Z
+27706,MUKATSAR,11 KV KILLIANWALI(FL06),Cancellation Request Approved (Permit not active),2026-10-15T07:41:15Z,2026-10-15T07:39:00Z
+27705,MUKATSAR,"11 KV Dharampura(FL09), 11 KV SAIDANWALI(FL07)",Cancellation Request Approved (Permit not active),2026-10-15T07:36:12Z,2026-10-15T07:34:00Z
+27704,GURDASPUR,City Thana(FL17),Cancellation Request Approved (Permit not active),2026-10-15T07:18:10Z,2026-10-15T07:17:00Z
+27703,MUKATSAR,"11 KV TARA ESTATE(FL09), 11 KV Alamgarh(FL03), 11 KV GANGA NAGAR ROAD(FL01)",Cancellation Request Approved (Permit not active),2026-10-15T06:48:27Z,2026-10-15T06:47:00Z
+27702,NAWANSHAHR,Mithra UPS(FL03),Cancellation Request Approved (Permit not active),2026-10-14T18:24:33Z,2026-10-14T18:24:00Z
+27701,SUB URBAN AMRITSAR,SG enclave(Fl10),Cancellation Request Approved (Permit not active),2026-10-14T17:26:33Z,2026-10-14T17:24:00Z
+27700,JALANDHAR,GURU GOBIND SINGH AVENUE(FL10),Cancellation Request Approved (Permit not active),2026-10-14T16:57:08Z,2026-10-14T16:56:00Z
+27699,SANGRUR,11 KV RAM NAGAR URBAN(FL20),Cancellation Request Approved (Permit not active),2026-10-14T16:36:42Z,2026-10-14T16:34:00Z
+27698,CITY WEST LUDHIANA,11 KV Happy colony(FL17),Cancellation Request Approved (Permit not active),2026-10-14T16:02:17Z,2026-10-14T16:00:00Z
+27697,SANGRUR,11 KV Jawanda UPS(FL02),Cancellation Request Approved (Permit not active),2026-10-14T15:36:35Z,2026-10-14T15:35:00Z
+27696,KHANNA,City 1(FL08),Cancellation Request Approved (Permit not active),2026-10-14T15:32:11Z,2026-10-14T15:31:00Z
+27695,SUB URBAN AMRITSAR,MAJITHA ROAD VERKA BYE PASS(FL05),Cancellation Request Approved (Permit not active),2026-10-14T15:30:47Z,2026-10-14T15:30:00Z
+27694,SANGRUR,UPPLI UPS(FL15),Cancellation Request Approved (Permit not active),2026-10-14T15:28:21Z,2026-10-14T15:27:00Z
+27693,MUKATSAR,"HARIPURA(FL02), PANJKOSI(FL06)",Cancellation Request Approved (Permit not active),2026-10-14T15:19:16Z,2026-10-14T15:18:00Z
+27692,MUKATSAR,11 KV TARA ESTATE(FL09),Cancellation Request Approved (Permit not active),2026-10-14T15:19:10Z,2026-10-14T15:18:00Z
+27691,CITY WEST LUDHIANA,E Block(DO28),Cancellation Request Approved (Permit not active),2026-10-14T15:18:06Z,2026-10-14T15:17:00Z
+27690,CITY WEST LUDHIANA,HOUSEFED(FL14),Cancellation Request Approved (Permit not active),2026-10-14T15:14:18Z,2026-10-14T15:13:00Z
+27689,CITY WEST LUDHIANA,MAGNET ROAD(FL13),Cancellation Request Approved (Permit not active),2026-10-14T15:12:12Z,2026-10-14T15:11:00Z
+27688,SANGRUR,"Kanjla C-1(FL21), Kothi Sahib AP(FL26)",Cancellation Request Approved (Permit not active),2026-10-14T14:52:14Z,2026-10-14T14:45:00Z
+27687,MUKATSAR,"11 KV Azimgarh Urban(FL03), 11 KV Dhani Bisehesarnath(FL02)",Cancellation Request Approved (Permit not active),2026-10-14T14:28:59Z,2026-10-14T14:28:00Z
+27686,SANGRUR,ARYA COLLAGE(FL23),Cancellation Request Approved (Permit not active),2026-10-14T14:16:07Z,2026-10-14T14:15:00Z
+27685,KHANNA,Jai Bhart(FL20),Cancellation Request Approved (Permit not active),2026-10-14T14:11:00Z,2026-10-14T14:09:00Z
+27684,SANGRUR,HARERI(FL07),Cancellation Request Approved (Permit not active),2026-10-14T14:01:48Z,2026-10-14T14:00:00Z
+27683,MUKATSAR,11 KV South Avenue(FL01),Cancellation Request Approved (Permit not active),2026-10-14T13:56:17Z,2026-10-14T13:55:00Z
+27682,SANGRUR,11 KV  LAKHMIRWALA UPS(FL11),Cancellation Request Approved (Permit not active),2026-10-14T13:48:49Z,2026-10-14T13:47:00Z
+27681,MUKATSAR,Rasoolpur Kera AP(FL13),Cancellation Request Approved (Permit not active),2026-10-14T13:43:23Z,2026-10-14T13:39:00Z
+27680,JALANDHAR,11KVMARKFEED FEEDER(FL15),Cancellation Request Approved (Permit not active),2026-10-14T13:39:20Z,2026-10-14T13:38:00Z
+27679,SANGRUR,11 KV Ratolan UPS (KH)(FL05),Cancellation Request Approved (Permit not active),2026-10-14T13:37:28Z,2026-10-14T13:36:00Z
+27678,MUKATSAR,11 KV TARA ESTATE(FL09),Cancellation Request Approved (Permit not active),2026-10-14T12:59:03Z,2026-10-14T12:58:00Z
+27677,CITY WEST LUDHIANA,URBAN ESTATE PH-1(FL01),Cancellation Request Approved (Permit not active),2026-10-14T12:48:45Z,2026-10-14T12:48:00Z
+27676,SANGRUR,Akoi Sahab(FL08),Approved/ Active Permit,2026-10-14T12:46:58Z,2026-10-14T12:46:00Z
+27675,BARNALA,11 KV SEKHA UPS (NEW)(FL06),Cancellation Request Approved (Permit not active),2026-10-14T12:46:46Z,2026-10-14T12:44:00Z
+27674,KHANNA,Nandi Colony(FL15),Cancellation Request Approved (Permit not active),2026-10-14T12:45:27Z,2026-10-14T12:43:00Z
+27673,SANGRUR,Daska C-1(FL07),Cancellation Request Approved (Permit not active),2026-10-14T12:32:46Z,2026-10-14T12:31:00Z
+27672,JALANDHAR,GURU GOBIND SINGH AVENUE(FL10),Cancellation Request Approved (Permit not active),2026-10-14T12:26:09Z,2026-10-14T12:25:00Z
+27671,SANGRUR,"BALRAN(FL11), PAPRA(main+branch)(FL15)",Cancellation Request Approved (Permit not active),2026-10-14T12:17:40Z,2026-10-14T12:16:00Z
+27670,CITY WEST LUDHIANA,"Ferozpur Road(FL18), MES-2(FL11)",Cancellation Request Approved (Permit not active),2026-10-14T12:13:57Z,2026-10-14T12:12:00Z
+27669,CITY WEST LUDHIANA,"MES-2(FL11), E Block(DO28)",Rejected BY SSA/SSO,2026-10-14T12:08:05Z,2026-10-14T12:07:00Z
+27668,SANGRUR,Saho Patti(FL03),Cancellation Request Approved (Permit not active),2026-10-14T12:05:16Z,2026-10-14T12:04:00Z
+27667,MUKATSAR,11 KV Telupura(FL10),Cancellation Request Approved (Permit not active),2026-10-14T11:58:56Z,2026-10-14T11:57:00Z
+27666,MUKATSAR,11 KV Telupura(FL10),Rejected BY SSA/SSO,2026-10-14T11:56:28Z,2026-10-14T11:55:00Z
+27665,CITY WEST LUDHIANA,E Block(DO28),Cancellation Request Approved (Permit not active),2026-10-14T11:56:28Z,2026-10-14T11:55:00Z
+27664,SANGRUR,DHUNIDASS(FL13),Cancellation Request Approved (Permit not active),2026-10-14T11:45:55Z,2026-10-14T11:45:00Z
+27663,SANGRUR,GHAMOORGHAT CITY(FL01),Cancellation Request Approved (Permit not active),2026-10-14T11:28:43Z,2026-10-14T11:28:00Z
+27662,GURDASPUR,Daburji(FL01),Cancellation Request Approved (Permit not active),2026-10-14T11:21:46Z,2026-10-14T11:15:00Z
+27661,MUKATSAR,11 KV SAIDANWALI(FL07),Cancellation Request Approved (Permit not active),2026-10-14T11:17:44Z,2026-10-14T11:15:00Z
+27660,SANGRUR,"SULAR(FL01), SULAR CITY(FL08)",Cancellation Request Approved (Permit not active),2026-10-14T11:13:20Z,2026-10-14T11:11:00Z
+27659,MUKATSAR,"11 KV KILLIANWALI(FL06), 11 KV Alamgarh(FL03), 11 KV GANGA NAGAR ROAD(FL01), 11 KV KIKKER KHERA(FL08)",Cancellation Request Approved (Permit not active),2026-10-14T11:11:34Z,2026-10-14T11:10:00Z
+27658,MUKATSAR,HARIPURA(FL02),Cancellation Request Approved (Permit not active),2026-10-14T11:10:58Z,2026-10-14T11:10:00Z
+27657,JALANDHAR,"RAJOWAL(FL11), KATHAR(FL01)",Cancellation Request Approved (Permit not active),2026-10-14T11:07:06Z,2026-10-14T11:06:00Z
+27656,SANGRUR,11 KV HARIOU(FL02),Cancellation Request Approved (Permit not active),2026-10-14T11:01:35Z,2026-10-14T11:00:00Z
+27655,SANGRUR,11 kv Dera Harnam Dass AP(FL08),Cancellation Request Approved (Permit not active),2026-10-14T10:59:21Z,2026-10-14T10:58:00Z
+27654,SANGRUR,11 KV HARIOU(FL02),Rejected BY SSA/SSO,2026-10-14T10:58:16Z,2026-10-14T10:56:00Z
+27653,MUKATSAR,11 KV TARA ESTATE(FL09),Cancellation Request Approved (Permit not active),2026-10-14T10:51:35Z,2026-10-14T10:51:00Z
+27652,PATIALA,Prem Nagar Feeder(FL04),Cancellation Request Approved (Permit not active),2026-10-14T10:47:09Z,2026-10-14T10:46:00Z
+27651,PATIALA,Ekta Vihar(FL11),Cancellation Request Approved (Permit not active),2026-10-14T10:43:44Z,2026-10-14T10:36:00Z
+27650,KHANNA,LIBRA(FL03),Cancellation Request Approved (Permit not active),2026-10-14T10:37:16Z,2026-10-14T10:34:00Z
+27649,JALANDHAR,11KV SANGAT SINGH NAGAR(FL10),Permit Request Submitted (Permit not active),2026-10-14T10:28:49Z,2026-10-14T10:27:00Z
+27648,SANGRUR,MODEL TOWN URBAN(FL03),Cancellation Request Approved (Permit not active),2026-10-14T10:18:03Z,2026-10-14T10:17:00Z
+27647,SANGRUR,UPS GULARI(FL06),Cancellation Request Approved (Permit not active),2026-10-14T10:05:21Z,2026-10-14T10:03:00Z
+27646,BARNALA,11 KV SEKHA UPS (NEW)(FL06),Cancellation Request Approved (Permit not active),2026-10-14T10:00:09Z,2026-10-14T09:58:00Z
+27645,CITY WEST LUDHIANA,URBAN VIHAR(FL19),Cancellation Request Approved (Permit not active),2026-10-14T09:27:40Z,2026-10-14T09:27:00Z
+27644,CITY WEST LUDHIANA,Kiran Vihar(FL20),Cancellation Request Approved (Permit not active),2026-10-13T18:37:11Z,2026-10-13T18:36:00Z
+27643,CITY AMRITSAR,11Kv Kesri Bagh(FL01),Cancellation Request Approved (Permit not active),2026-10-13T17:46:06Z,2026-10-13T17:45:00Z
+27642,SANGRUR,CHANGAL(FL06),Cancellation Request Approved (Permit not active),2026-10-13T17:34:34Z,2026-10-13T17:34:00Z
+27641,SANGRUR,UBHEWAL(FL04),Cancellation Request Approved (Permit not active),2026-10-13T17:23:55Z,2026-10-13T17:23:00Z
+27640,NAWANSHAHR,Randhawa(FL05),Cancellation Request Approved (Permit not active),2026-10-13T17:23:39Z,2026-10-13T17:23:00Z
+27639,GURDASPUR,Coco Cola ( Wave Beverages )(FL18),Cancellation Request Approved (Permit not active),2026-10-13T17:19:00Z,2026-10-13T17:18:00Z
+27638,SANGRUR,TOORBANJARA UPS(FL07),Cancellation Request Approved (Permit not active),2026-10-13T17:15:42Z,2026-10-13T17:15:00Z
+27637,GURDASPUR,"Dalia(FL03), Manj(FL08)",Cancellation Request Approved (Permit not active),2026-10-13T16:38:23Z,2026-10-13T16:37:00Z
+27636,GURDASPUR,"Manj(FL08), City Thana(FL17)",Rejected BY SSA/SSO,2026-10-13T16:36:31Z,2026-10-13T16:36:00Z
+27635,GURDASPUR,City Thana(FL17),Cancellation Request Approved (Permit not active),2026-10-13T16:30:55Z,2026-10-13T16:29:00Z
+27634,SANGRUR,11 KV CITY-9(FL11),Cancellation Request Approved (Permit not active),2026-10-13T16:12:21Z,2026-10-13T16:11:00Z
+27633,SANGRUR,UPPLI UPS(FL15),Cancellation Request Approved (Permit not active),2026-10-13T16:10:02Z,2026-10-13T16:03:00Z
+27630,KHANNA,MALERKOTLA ROAD(FL01),Cancellation Request Approved (Permit not active),2026-10-13T15:51:16Z,2026-10-13T15:50:00Z
+27626,CITY AMRITSAR,LAKKAR MANDI(FL06),Active But Cancellation Request Submitted,2026-10-13T15:17:50Z,2026-10-13T15:10:00Z
+27625,SANGRUR,MANIANA(FL02),Cancellation Request Approved (Permit not active),2026-10-13T15:14:56Z,2026-10-13T15:14:00Z
+27624,GURDASPUR,Azizpur(FL03),Cancellation Request Approved (Permit not active),2026-10-13T15:06:43Z,2026-10-13T15:04:00Z
+27623,HOSHIARPUR,11 KV Narayan Nagar(FL17),Cancellation Request Approved (Permit not active),2026-10-13T15:06:15Z,2026-10-13T15:05:00Z
+27622,SANGRUR,Geeta Bhawan Road Dirba C-1(FL20),Cancellation Request Approved (Permit not active),2026-10-13T14:49:59Z,2026-10-13T14:48:00Z
+27621,KHANNA,Goldev City(FL31),Cancellation Request Approved (Permit not active),2026-10-13T14:37:27Z,2026-10-13T14:35:00Z
+27620,MUKATSAR,11 KV SAIDANWALI(FL07),Cancellation Request Approved (Permit not active),2026-10-13T14:21:05Z,2026-10-13T14:19:00Z
+27619,GURDASPUR,Behrian(FL13),Cancellation Request Approved (Permit not active),2026-10-13T13:45:00Z,2026-10-13T13:44:00Z
+27618,CITY WEST LUDHIANA,AMAR PURI(FL28),Cancellation Request Approved (Permit not active),2026-10-13T13:39:23Z,2026-10-13T13:38:00Z
+27617,CITY WEST LUDHIANA,JIWAN UDYOG(FL17),Cancellation Request Approved (Permit not active),2026-10-13T13:33:32Z,2026-10-13T13:32:00Z
+27616,KHANNA,Nandi Colony(FL15),Cancellation Request Approved (Permit not active),2026-10-13T13:31:05Z,2026-10-13T13:30:00Z
+27615,MUKATSAR,MAUJGARH(FL05),Cancellation Request Approved (Permit not active),2026-10-13T13:16:37Z,2026-10-13T13:15:00Z
+27614,GURDASPUR,"TALIBPUR(FL03), GAJIKOT(FL02)",Cancellation Request Approved (Permit not active),2026-10-13T13:03:38Z,2026-10-13T13:01:00Z
+27613,HOSHIARPUR,MOUNT AVENUE(FL04),Cancellation Request Approved (Permit not active),2026-10-13T12:59:44Z,2026-10-13T12:59:00Z
+27612,CITY WEST LUDHIANA,GS AUTO(FL01),Cancellation Request Approved (Permit not active),2026-10-13T12:48:08Z,2026-10-13T12:47:00Z
+27611,MUKATSAR,"DAULATPURA UPS(FL08), 11 KV Sappan wali(FL11), DALMIR KHERA(FL01)",Cancellation Request Approved (Permit not active),2026-10-13T12:43:35Z,2026-10-13T12:42:00Z
+27610,MUKATSAR,"11 KV Sappan wali(FL11), DAULATPURA UPS(FL08), DALMIR KHERA(FL01)",Rejected BY SSA/SSO,2026-10-13T12:41:32Z,2026-10-13T12:40:00Z
+27609,SANGRUR,UPS NIHALGARH(FL14),Cancellation Request Approved (Permit not active),2026-10-13T12:33:33Z,2026-10-13T12:32:00Z
+27608,KAPURTHALA,UPS SUJOKALIA(FL10),Cancellation Request Approved (Permit not active),2026-10-13T12:32:11Z,2026-10-13T12:31:00Z
+27607,SANGRUR,11 kv Dhillon Patti Cat-1(FL11),Cancellation Request Approved (Permit not active),2026-10-13T12:27:15Z,2026-10-13T12:26:00Z
+27606,BARNALA,BISHANGARH(FL38),Permit Request Submitted (Permit not active),2026-10-13T12:22:52Z,2026-10-13T12:22:00Z
+27605,SANGRUR,CITY SANGRUR(FL09),Cancellation Request Approved (Permit not active),2026-10-13T11:58:00Z,2026-10-13T11:57:00Z
+27604,GURDASPUR,Shahpurkandi(FL10),Cancellation Request Approved (Permit not active),2026-10-13T11:52:33Z,2026-10-13T11:52:00Z
+27603,CITY WEST LUDHIANA,BASANT CITY(FL16),Cancellation Request Approved (Permit not active),2026-10-13T11:44:05Z,2026-10-13T11:43:00Z
+27602,PATIALA,"UPS SURAJPUR(FL01), SOUJA(FL04)",Cancellation Request Approved (Permit not active),2026-10-13T11:42:53Z,2026-10-13T11:39:00Z
+27601,SANGRUR,BALAKNATH(FL17),Cancellation Request Approved (Permit not active),2026-10-13T11:38:11Z,2026-10-13T11:37:00Z
+27600,HOSHIARPUR,service club(FL09),Cancellation Request Approved (Permit not active),2026-10-13T11:37:21Z,2026-10-13T11:26:00Z
+27599,GURDASPUR,Jugial(FL09),Cancellation Request Approved (Permit not active),2026-10-13T11:32:14Z,2026-10-13T11:31:00Z
+27598,NAWANSHAHR,SHAHPUR(FL20),Cancellation Request Approved (Permit not active),2026-10-13T11:32:05Z,2026-10-13T11:30:00Z
+27597,GURDASPUR,"Model Town(FL01), Sunder Nagar(FL10)",Cancellation Request Approved (Permit not active),2026-10-13T11:08:13Z,2026-10-13T11:05:00Z
+27596,GURDASPUR,CITY AWANKHA(FL14),Cancellation Request Approved (Permit not active),2026-10-13T11:05:09Z,2026-10-13T11:04:00Z
+27595,GURDASPUR,"Dalia(FL03), Manj(FL08)",Cancellation Request Approved (Permit not active),2026-10-13T11:01:24Z,2026-10-13T11:01:00Z
+27594,KHANNA,C K UPS(FL30),Cancellation Request Approved (Permit not active),2026-10-13T10:58:24Z,2026-10-13T10:57:00Z
+27593,KHANNA,sahiwal(FL07),Cancellation Request Approved (Permit not active),2026-10-13T10:55:37Z,2026-10-13T10:54:00Z
+27592,SANGRUR,11 KV SHERON CITY(FL02),Cancellation Request Approved (Permit not active),2026-10-13T10:54:15Z,2026-10-13T10:53:00Z
+27591,CITY WEST LUDHIANA,"BUS STAND(FL06), G.T.B.(FL15)",Cancellation Request Approved (Permit not active),2026-10-13T10:44:36Z,2026-10-13T10:42:00Z
+27590,SANGRUR,Mannwala(FL11),Cancellation Request Approved (Permit not active),2026-10-13T10:43:10Z,2026-10-13T10:42:00Z
+27589,JALANDHAR,Railway Road(FL21),Cancellation Request Approved (Permit not active),2026-10-13T10:42:52Z,2026-10-13T10:40:00Z
+27588,SANGRUR,"GANDUAN CITY(FL05), GANDHUAN -II(FL04)",Cancellation Request Approved (Permit not active),2026-10-13T10:09:33Z,2026-10-13T10:08:00Z
+27587,SANGRUR,UPS NIHALGARH(FL14),Permit Request Submitted (Permit not active),2026-10-13T10:07:31Z,2026-10-13T10:06:00Z
+27586,SANGRUR,UPS NIHALGARH(FL14),Permit Request Submitted (Permit not active),2026-10-13T10:01:37Z,2026-10-13T10:00:00Z
+27585,SANGRUR,UPS NIHALGARH(FL14),Permit Request Submitted (Permit not active),2026-10-13T09:58:01Z,2026-10-13T09:56:00Z
+27584,GURDASPUR,I.T.I(FL02),Cancellation Request Approved (Permit not active),2026-10-13T09:47:56Z,2026-10-13T09:45:00Z
+27583,SANGRUR,ALAMPUR(FL05),Cancellation Request Approved (Permit not active),2026-10-13T09:46:25Z,2026-10-13T09:45:00Z
+27582,MUKATSAR,11 KV TAJA PATTI(FL04),Cancellation Request Approved (Permit not active),2026-10-13T08:42:06Z,2026-10-13T08:39:00Z
+27581,GURDASPUR,"TALIBPUR(FL03), GAJIKOT(FL02)",Cancellation Request Approved (Permit not active),2026-10-13T08:34:01Z,2026-10-13T08:32:00Z
+27580,CITY WEST LUDHIANA,MANAKWAL(FL06),Cancellation Request Approved (Permit not active),2026-10-12T20:59:46Z,2026-10-12T20:58:00Z
+27579,JALANDHAR,BASTI DANISJMANDA(FL04),Cancellation Request Approved (Permit not active),2026-10-12T20:10:06Z,2026-10-12T20:07:00Z
+27578,CITY WEST LUDHIANA,GLADA(FL10),Cancellation Request Approved (Permit not active),2026-10-12T19:48:52Z,2026-10-12T19:48:00Z
+27577,FARIDKOT,THARA AP(FL08),Cancellation Request Approved (Permit not active),2026-10-12T19:46:19Z,2026-10-12T19:44:00Z
+27576,CITY AMRITSAR,11 KV MOTI BAZAR(FL09),Cancellation Request Approved (Permit not active),2026-10-12T19:25:58Z,2026-10-12T19:25:00Z
+27575,PATIALA,Jagdish Colony(FL04),Active But Cancellation Request Submitted,2026-10-12T18:51:50Z,2026-10-12T18:49:00Z
+27574,GURDASPUR,City-2(FL04),Rejected BY SSA/SSO,2026-10-12T18:23:14Z,2026-10-12T18:21:00Z
+27573,SANGRUR,11KV UPS TOGAWAL(FL08),Cancellation Request Approved (Permit not active),2026-10-12T18:09:54Z,2026-10-12T18:08:00Z
+27572,NAWANSHAHR,BORA(FL02),Cancellation Request Approved (Permit not active),2026-10-12T17:59:17Z,2026-10-12T17:57:00Z
+27571,SANGRUR,UPS Guru Nanak Nagar(FL15),Cancellation Request Approved (Permit not active),2026-10-12T17:37:05Z,2026-10-12T17:36:00Z
+27570,JALANDHAR,Heera pur(FL18),Cancellation Request Approved (Permit not active),2026-10-12T17:33:33Z,2026-10-12T17:31:00Z
+27569,MUKATSAR,11 KV SIDHU NAGRI(FL05),Cancellation Request Approved (Permit not active),2026-10-12T17:14:54Z,2026-10-12T17:14:00Z
+27568,BARNALA,BISHANGARH(FL38),Permit Request Submitted (Permit not active),2026-10-12T16:58:15Z,2026-10-12T16:57:00Z
+27567,SANGRUR,11 KV CHHAJLI INDUSTRIAL(FL04),Cancellation Request Approved (Permit not active),2026-10-12T16:40:36Z,2026-10-12T16:39:00Z
+27566,CITY WEST LUDHIANA,KULAR(FL13),Cancellation Request Approved (Permit not active),2026-10-12T16:17:40Z,2026-10-12T16:16:00Z
+27565,KHANNA,Vasu Multimetal(FL11),Cancellation Request Approved (Permit not active),2026-10-12T16:10:09Z,2026-10-12T16:09:00Z
+27564,JALANDHAR,RAJOWAL(FL11),Cancellation Request Approved (Permit not active),2026-10-12T15:45:03Z,2026-10-12T15:44:00Z
+27563,SANGRUR,"BALAKNATH(FL17), Patran Road(FL19)",Cancellation Request Approved (Permit not active),2026-10-12T15:34:10Z,2026-10-12T15:32:00Z
+27562,CITY WEST LUDHIANA,DHURI  LINE(FL20),Cancellation Request Approved (Permit not active),2026-10-12T15:29:30Z,2026-10-12T15:28:00Z
+27561,SANGRUR,11 KV HAMJEHRI(FL09),Cancellation Request Approved (Permit not active),2026-10-12T15:21:54Z,2026-10-12T15:21:00Z
+27560,NAWANSHAHR,SHAHPUR(FL20),Cancellation Request Approved (Permit not active),2026-10-12T15:20:12Z,2026-10-12T15:18:00Z
+27559,CITY WEST LUDHIANA,"EXTENSION(FL03), GURU GIAN VIHAR(FL14)",Cancellation Request Approved (Permit not active),2026-10-12T15:10:23Z,2026-10-12T15:09:00Z
+27558,SANGRUR,VRC(FL),Cancellation Request Approved (Permit not active),2026-10-12T15:09:19Z,2026-10-12T15:08:00Z
+27557,SANGRUR,11 KV UPS DEOGARH(FL06),Cancellation Request Approved (Permit not active),2026-10-12T15:07:38Z,2026-10-12T15:06:00Z
+27556,SANGRUR,ALAMPUR UPS(FL17),Cancellation Request Approved (Permit not active),2026-10-12T15:06:05Z,2026-10-12T15:05:00Z
+27555,SANGRUR,BAKHOPIR URBAN(FL07),Cancellation Request Approved (Permit not active),2026-10-12T14:59:47Z,2026-10-12T14:58:00Z
+27554,SANGRUR,11 KV RAM NAGAR URBAN(FL20),Cancellation Request Approved (Permit not active),2026-10-12T14:56:04Z,2026-10-12T14:54:00Z
+27553,CITY WEST LUDHIANA,MODEL HOUSE(FL07),Cancellation Request Approved (Permit not active),2026-10-12T14:43:06Z,2026-10-12T14:42:00Z
+27552,GURDASPUR,Kiari(FL06),Cancellation Request Approved (Permit not active),2026-10-12T14:39:06Z,2026-10-12T14:38:00Z
+27551,MUKATSAR,"11 KV Sappan wali(FL11), MAUJGARH(FL05)",Cancellation Request Approved (Permit not active),2026-10-12T14:32:32Z,2026-10-12T14:31:00Z
+27550,KHANNA,"Peer Khana(FL32), City-2 khanna(FL13)",Cancellation Request Approved (Permit not active),2026-10-12T14:20:06Z,2026-10-12T14:15:00Z
+27549,MUKATSAR,11 KV Malookpura UPS(FL02),Cancellation Request Approved (Permit not active),2026-10-12T14:07:46Z,2026-10-12T14:06:00Z
+27548,SANGRUR,11 KV Rambagh(FL21),Cancellation Request Approved (Permit not active),2026-10-12T14:00:21Z,2026-10-12T13:59:00Z
+27547,SANGRUR,11 KV GHASIWAL AP(MODEL TOWN GR)(FL04),Cancellation Request Approved (Permit not active),2026-10-12T13:54:01Z,2026-10-12T13:48:00Z
+27546,GURDASPUR,"City-1(FLO1), CITY AWANKHA(FL14)",Cancellation Request Approved (Permit not active),2026-10-12T13:48:24Z,2026-10-12T13:47:00Z
+27545,CITY AMRITSAR,Queens Road(FL16),Cancellation Request Approved (Permit not active),2026-10-12T13:46:28Z,2026-10-12T13:41:00Z
+27544,JALANDHAR,11 Shaheed Babu Labh Singh Nagar(FL17),Cancellation Request Approved (Permit not active),2026-10-12T13:40:13Z,2026-10-12T13:38:00Z
+27543,SANGRUR,CITY SANGRUR(FL09),Cancellation Request Approved (Permit not active),2026-10-12T13:33:27Z,2026-10-12T13:32:00Z
+27542,SANGRUR,GHORENAB UPS(FL16),Cancellation Request Approved (Permit not active),2026-10-12T13:21:46Z,2026-10-12T13:19:00Z
+27541,SUB URBAN AMRITSAR,11 kv Bhullar Avenue(FL22),Cancellation Request Approved (Permit not active),2026-10-12T13:19:29Z,2026-10-12T13:18:00Z
+27540,SANGRUR,UPS BALAD KALAN(FL11),Cancellation Request Approved (Permit not active),2026-10-12T12:59:01Z,2026-10-12T12:58:00Z
+27539,SANGRUR,UPS Guru Nanak Nagar(FL15),Cancellation Request Approved (Permit not active),2026-10-12T12:49:06Z,2026-10-12T12:48:00Z
+27538,MUKATSAR,"11 KV Sappan wali(FL11), MAUJGARH(FL05)",Cancellation Request Approved (Permit not active),2026-10-12T12:45:34Z,2026-10-12T12:44:00Z
+27537,GURDASPUR,"GAJIKOT(FL02), TALIBPUR(FL03)",Cancellation Request Approved (Permit not active),2026-10-12T12:38:09Z,2026-10-12T12:37:00Z
+27536,SANGRUR,MOURAN A+B (GRID DIRBA)(FL02),Cancellation Request Approved (Permit not active),2026-10-12T12:29:12Z,2026-10-12T12:28:00Z
+27535,MUKATSAR,KRISHNA NAGRI(FL02),Cancellation Request Approved (Permit not active),2026-10-12T12:24:18Z,2026-10-12T12:22:00Z
+27534,SANGRUR,11 KV BHAMABADI AP(FL08),Cancellation Request Approved (Permit not active),2026-10-12T12:20:37Z,2026-10-12T12:18:00Z
+27533,SANGRUR,Industrial(FL13),Cancellation Request Approved (Permit not active),2026-10-12T12:18:55Z,2026-10-12T12:17:00Z
+27532,SANGRUR,CITY NADAMPUR(FL05),Cancellation Request Approved (Permit not active),2026-10-12T12:17:39Z,2026-10-12T12:16:00Z
+27531,PATIALA,Rishi Colony Feeder(FL08),Cancellation Request Approved (Permit not active),2026-10-12T12:16:43Z,2026-10-12T12:15:00Z
+27530,JALANDHAR,11 KV Garden Colony(FL09),Cancellation Request Approved (Permit not active),2026-10-12T12:14:05Z,2026-10-12T12:13:00Z
+27529,MUKATSAR,11 KV Lalbai UPS(FL08),Cancellation Request Approved (Permit not active),2026-10-12T12:10:55Z,2026-10-12T12:09:00Z
+27528,GURDASPUR,Aujla(FL05),Cancellation Request Approved (Permit not active),2026-10-12T12:02:52Z,2026-10-12T12:02:00Z
+27527,CITY WEST LUDHIANA,"ABDULLAPUR BASTI(FL08), DHURI  LINE(FL20)",Cancellation Request Approved (Permit not active),2026-10-12T11:53:17Z,2026-10-12T11:51:00Z
+27526,CITY WEST LUDHIANA,Ranchi Colony(D028),Cancellation Request Approved (Permit not active),2026-10-12T11:50:38Z,2026-10-12T11:49:00Z
+27525,PATIALA,UPS marrori(FL12),Cancellation Request Approved (Permit not active),2026-10-12T11:46:33Z,2026-10-12T11:43:00Z
+27524,KHANNA,DANA MANDI(FL07),Cancellation Request Approved (Permit not active),2026-10-12T11:45:55Z,2026-10-12T11:45:00Z
+27523,SUB URBAN AMRITSAR,RANJIT AVENUE(FL03),Cancellation Request Approved (Permit not active),2026-10-12T11:37:24Z,2026-10-12T11:36:00Z
+27522,SUB URBAN AMRITSAR,DADUPURA(FL16),Cancellation Request Approved (Permit not active),2026-10-12T11:35:24Z,2026-10-12T11:34:00Z
+27521,SANGRUR,"City(__), Bhasaur(---)",Cancellation Request Approved (Permit not active),2026-10-12T11:34:46Z,2026-10-12T11:33:00Z
+27520,SUB URBAN AMRITSAR,RANJIT AVENUE(FL03),Rejected BY SSA/SSO,2026-10-12T11:29:30Z,2026-10-12T11:27:00Z
+27519,GURDASPUR,Model Town(FL01),Rejected BY SSA/SSO,2026-10-12T11:21:17Z,2026-10-12T11:19:00Z
+27518,SUB URBAN AMRITSAR,"KOTLA SULTAN SINGH UPS(FL14), TARPAI(FL07)",Cancellation Request Approved (Permit not active),2026-10-12T11:19:16Z,2026-10-12T11:17:00Z
+27517,GURDASPUR,Model Town(FL01),Cancellation Request Approved (Permit not active),2026-10-12T11:18:34Z,2026-10-12T11:16:00Z
+27516,SANGRUR,N BAKRAHA + dera bikaneria new l(FL12),Cancellation Request Approved (Permit not active),2026-10-12T11:17:23Z,2026-10-12T11:16:00Z
+27515,JALANDHAR,MOTA SINGH NAGAR(FL05),Cancellation Request Approved (Permit not active),2026-10-12T11:13:01Z,2026-10-12T11:11:00Z
+27514,CITY AMRITSAR,BHAI MANJ ROAD(FL06),Cancellation Request Approved (Permit not active),2026-10-12T11:03:17Z,2026-10-12T11:01:00Z
+27513,JALANDHAR,11KV SANGAT SINGH NAGAR(FL10),Cancellation Request Approved (Permit not active),2026-10-12T10:59:11Z,2026-10-12T10:57:00Z
+27512,KHANNA,Alloona Miana(FL18),Cancellation Request Approved (Permit not active),2026-10-12T10:56:59Z,2026-10-12T10:54:00Z
+27511,CITY WEST LUDHIANA,11 KV Vikram Dutt(FL10),Cancellation Request Approved (Permit not active),2026-10-12T10:56:41Z,2026-10-12T10:55:00Z
+27510,SUB URBAN AMRITSAR,ADARSH NAGAR(FL07),Cancellation Request Approved (Permit not active),2026-10-12T10:47:24Z,2026-10-12T10:46:00Z
+27509,CITY WEST LUDHIANA,DUGRI(FL10),Cancellation Request Approved (Permit not active),2026-10-12T10:44:47Z,2026-10-12T10:44:00Z
+27508,SANGRUR,CHOTIAN CITY(FL02),Cancellation Request Approved (Permit not active),2026-10-12T10:38:06Z,2026-10-12T10:37:00Z
+27507,SANGRUR,11KV UPS TOGAWAL(FL08),Cancellation Request Approved (Permit not active),2026-10-12T10:31:19Z,2026-10-12T10:28:00Z
+27506,CITY AMRITSAR,11 KV MOTI BAZAR(FL09),Cancellation Request Approved (Permit not active),2026-10-12T10:31:03Z,2026-10-12T10:30:00Z
+27505,SANGRUR,Daska C-1(FL07),Cancellation Request Approved (Permit not active),2026-10-12T10:28:18Z,2026-10-12T10:27:00Z
+27504,JALANDHAR,Ravidass Bhavan(FL16),Cancellation Request Approved (Permit not active),2026-10-12T10:19:41Z,2026-10-12T10:19:00Z
+27503,CITY AMRITSAR,SERVER PURA(FL11),Cancellation Request Approved (Permit not active),2026-10-12T10:15:38Z,2026-10-12T10:13:00Z
+27502,SANGRUR,11 KV Urban Truck Union Road(FL13),Cancellation Request Approved (Permit not active),2026-10-12T10:15:37Z,2026-10-12T10:14:00Z
+27501,ROPAR,SHRI DASHMESH ACADEMY(FL06),Cancellation Request Approved (Permit not active),2026-10-12T10:14:50Z,2026-10-12T10:13:00Z
+27500,SUB URBAN AMRITSAR,"D-block,  GAD avenue(FL23)",Cancellation Request Approved (Permit not active),2026-10-12T10:13:53Z,2026-10-12T10:11:00Z
+27499,SUB URBAN AMRITSAR,"Pandori(FL03), NAVE NAAG AP(FL05), RAM NAGAR AP(FL09)",Cancellation Request Approved (Permit not active),2026-10-12T10:11:20Z,2026-10-12T10:08:00Z
+27498,SANGRUR,"BALRAN(FL11), PAPRA(main+branch)(FL15)",Cancellation Request Approved (Permit not active),2026-10-12T10:11:11Z,2026-10-12T10:10:00Z
+27497,SANGRUR,"PAPRA(main+branch)(FL15), BALRAN(FL11)",Rejected BY SSA/SSO,2026-10-12T10:10:56Z,2026-10-12T10:10:00Z
+27496,CITY AMRITSAR,11Kv New Ravi Dass Road(FL08),Cancellation Request Approved (Permit not active),2026-10-12T10:10:39Z,2026-10-12T10:08:00Z
+27495,SUB URBAN AMRITSAR,AJNALA ROAD(FL06),Cancellation Request Approved (Permit not active),2026-10-12T10:08:22Z,2026-10-12T10:07:00Z
+27494,CITY WEST LUDHIANA,MINT GUMRI(FL12),Cancellation Request Approved (Permit not active),2026-10-12T10:08:10Z,2026-10-12T10:07:00Z
+27493,SUB URBAN AMRITSAR,"BAULI INDUSTRY(FL11), KWALITY PHARMA(FL14), BAL KALAN INDUSTRY(FL08), DHANWANTRI IND(FL13), Sawdeshi Korean(FL07), DADDIAN UPS(FL04), CHAND INDUSTRY(D831), NAG KALAN URBAN(FL06), GAURI SHANKAR(FL10), Pandori UPS(FL01), Industry NAG(FL02)",Cancellation Request Approved (Permit not active),2026-10-12T10:06:35Z,2026-10-12T10:05:00Z
+27492,CITY AMRITSAR,EAST MOHAN NAGAR(FL10),Cancellation Request Approved (Permit not active),2026-10-12T10:06:07Z,2026-10-12T10:02:00Z
+27491,MUKATSAR,"11 KV Focal Point-1(FL14), 11 KV Focal Point-2(FL15)",Cancellation Request Approved (Permit not active),2026-10-12T10:01:45Z,2026-10-12T09:59:00Z
+27490,SANGRUR,BHAMNIWALA(NE04),Cancellation Request Approved (Permit not active),2026-10-12T09:22:18Z,2026-10-12T09:21:00Z
+27489,PATIALA,11 KV RAI MAJRA(FL15),Cancellation Request Approved (Permit not active),2026-10-12T08:08:54Z,2026-10-12T08:08:00Z
+27488,CITY WEST LUDHIANA,D-BLOCK(FL26),Cancellation Request Approved (Permit not active),2026-10-12T07:03:57Z,2026-10-12T07:00:00Z
+27487,GURDASPUR,City-1(FLO1),Cancellation Request Approved (Permit not active),2026-10-12T00:11:43Z,2026-10-12T00:11:00Z
+27486,JALANDHAR,CENTRAL MILL(FL02),Cancellation Request Approved (Permit not active),2026-10-11T23:19:04Z,2026-10-11T23:18:00Z
+27485,GURDASPUR,City-1(FLO1),Cancellation Request Approved (Permit not active),2026-10-11T21:36:03Z,2026-10-11T21:35:00Z
+27484,KHANNA,"jagat colony(FL25), Samrala Road(FL04)",Cancellation Request Approved (Permit not active),2026-10-11T20:12:24Z,2026-10-11T20:11:00Z
+27483,PATIALA,Gurbax Colony(FL06),Cancellation Request Approved (Permit not active),2026-10-11T19:48:56Z,2026-10-11T19:47:00Z
+27482,JALANDHAR,LADOWALI ROAD(FL04),Cancellation Request Approved (Permit not active),2026-10-11T19:43:02Z,2026-10-11T19:42:00Z
+27481,SUB URBAN AMRITSAR,Meritorious School(Fl10),Cancellation Request Approved (Permit not active),2026-10-11T19:08:16Z,2026-10-11T19:06:00Z
+27480,MUKATSAR,11 KV SAIDANWALI(FL07),Cancellation Request Approved (Permit not active),2026-10-11T18:14:44Z,2026-10-11T18:13:00Z
+27479,GURDASPUR,Kiari(FL06),Cancellation Request Approved (Permit not active),2026-10-11T18:14:10Z,2026-10-11T18:13:00Z
+27478,GURDASPUR,Azizpur(FL03),Cancellation Request Approved (Permit not active),2026-10-11T18:00:27Z,2026-10-11T17:59:00Z
+27477,MUKATSAR,11 KV SIDHU NAGRI(FL05),Cancellation Request Approved (Permit not active),2026-10-11T17:43:14Z,2026-10-11T17:42:00Z
+27476,MUKATSAR,"11 KV NAI ABADI(FL04), 11 KV Rajiv Nagar(FL16)",Cancellation Request Approved (Permit not active),2026-10-11T17:39:10Z,2026-10-11T17:38:00Z
+27475,KHANNA,"Akalgarh(FL18), Shamshpur UPS(FL13)",Cancellation Request Approved (Permit not active),2026-10-11T17:34:44Z,2026-10-11T17:34:00Z
+27474,NAWANSHAHR,"BHAJJAL(FL13), SADHOWAL(FL05)",Cancellation Request Approved (Permit not active),2026-10-11T17:06:53Z,2026-10-11T17:04:00Z
+27473,SANGRUR,Bhalwan1(FL15),Cancellation Request Approved (Permit not active),2026-10-11T17:00:49Z,2026-10-11T16:56:00Z
+27472,MUKATSAR,11 KV Kera Khera(FL03),Cancellation Request Approved (Permit not active),2026-10-11T16:58:35Z,2026-10-11T16:57:00Z
+27471,GURDASPUR,Abrol Nagar(FL10),Cancellation Request Approved (Permit not active),2026-10-11T16:48:17Z,2026-10-11T16:47:00Z
+27470,GURDASPUR,"Dalia(FL03), Manj(FL08)",Cancellation Request Approved (Permit not active),2026-10-11T16:37:40Z,2026-10-11T16:36:00Z
+27469,SUB URBAN AMRITSAR,MAJITHA ROAD VERKA BYE PASS(FL05),Cancellation Request Approved (Permit not active),2026-10-11T16:33:25Z,2026-10-11T16:32:00Z
+27468,BARNALA,INDUSTRIAL RATOLAN(FL19),Cancellation Request Approved (Permit not active),2026-10-11T16:30:19Z,2026-10-11T16:28:00Z
+27467,GURDASPUR,"Irrigation(FL05), Azizpur(FL03)",Cancellation Request Approved (Permit not active),2026-10-11T16:19:13Z,2026-10-11T16:18:00Z
+27466,SANGRUR,UPS NIHALGARH(FL14),Cancellation Request Approved (Permit not active),2026-10-11T16:17:37Z,2026-10-11T16:16:00Z
+27465,PATIALA,"GHANAUR(FL09), UPS CHAMARU(FL15)",Cancellation Request Approved (Permit not active),2026-10-11T16:15:53Z,2026-10-11T16:14:00Z
+27464,KHANNA,SALANA UPS(FL06),Cancellation Request Approved (Permit not active),2026-10-11T16:04:00Z,2026-10-11T16:03:00Z
+27463,GURDASPUR,"Nawan Pind(FL06), MUGRALA(FL7)",Cancellation Request Approved (Permit not active),2026-10-11T16:00:22Z,2026-10-11T15:59:00Z
+27462,PATIALA,Veer Singh Colony(FL05),Cancellation Request Approved (Permit not active),2026-10-11T15:57:35Z,2026-10-11T15:55:00Z
+27461,JALANDHAR,MODEL HOUSE(FL01),Cancellation Request Approved (Permit not active),2026-10-11T15:50:00Z,2026-10-11T15:49:00Z
+27460,NAWANSHAHR,TEHSIL COMPLEX GSR(FL16),Cancellation Request Approved (Permit not active),2026-10-11T15:41:44Z,2026-10-11T15:41:00Z
+27459,PATIALA,Lakkar Mandi(FL07),Cancellation Request Approved (Permit not active),2026-10-11T15:40:06Z,2026-10-11T15:39:00Z
+27458,GURDASPUR,Gujran Lahri(FL05),Cancellation Request Approved (Permit not active),2026-10-11T15:32:16Z,2026-10-11T15:30:00Z
+27457,NAWANSHAHR,Rurka Kalan(FL10),Cancellation Request Approved (Permit not active),2026-10-11T15:22:16Z,2026-10-11T15:20:00Z
+27456,GURDASPUR,NDK SEPARATE FEEDER(FL07),Cancellation Request Approved (Permit not active),2026-10-11T15:05:04Z,2026-10-11T15:03:00Z
+27455,MUKATSAR,"11 KV KANDHWALA Road Urban(FL10), 11 KV Rajiv Nagar(FL16)",Cancellation Request Approved (Permit not active),2026-10-11T15:01:10Z,2026-10-11T15:00:00Z
+27454,SANGRUR,11 KV Mata Modi Road(FL05),Cancellation Request Approved (Permit not active),2026-10-11T14:44:15Z,2026-10-11T14:43:00Z
+27453,SANGRUR,"Sangatpura(FL25), M K Road(FL10)",Cancellation Request Approved (Permit not active),2026-10-11T14:39:11Z,2026-10-11T14:38:00Z
+27452,MUKATSAR,11 KV SIDHU NAGRI(FL05),Cancellation Request Approved (Permit not active),2026-10-11T14:38:17Z,2026-10-11T14:37:00Z
+27451,KHANNA,ITI feeder(FL03),Cancellation Request Approved (Permit not active),2026-10-11T14:35:57Z,2026-10-11T14:34:00Z
+27450,JALANDHAR,CANAL(FL06),Cancellation Request Approved (Permit not active),2026-10-11T14:25:33Z,2026-10-11T14:23:00Z
+27449,SANGRUR,"11 KV Urban Truck Union Road(FL13), Geeta Bhawan Road Dirba C-1(FL20)",Cancellation Request Approved (Permit not active),2026-10-11T14:05:08Z,2026-10-11T14:04:00Z
+27448,MUKATSAR,11 KV Alamgarh(FL03),Cancellation Request Approved (Permit not active),2026-10-11T13:34:13Z,2026-10-11T13:33:00Z
+27447,JALANDHAR,GAJIPUR(FL18),Cancellation Request Approved (Permit not active),2026-10-11T13:31:09Z,2026-10-11T13:29:00Z
+27446,SANGRUR,"ARYA COLLAGE(FL23), City-I(FL04), Dharampura(FL15), 11kv Bank road(FL28)",Cancellation Request Approved (Permit not active),2026-10-11T13:25:24Z,2026-10-11T13:23:00Z
+27445,SANGRUR,"UPS KHANOURI(FL03), BHULLAN(FL14)",Cancellation Request Approved (Permit not active),2026-10-11T13:22:39Z,2026-10-11T13:21:00Z
+27444,JALANDHAR,FLAIR INTERNATIONAL(FL06),Cancellation Request Approved (Permit not active),2026-10-11T13:21:51Z,2026-10-11T13:21:00Z
+27443,JALANDHAR,FLAIR INTERNATIONAL(FL06),Rejected BY SSA/SSO,2026-10-11T13:20:55Z,2026-10-11T13:20:00Z
+27442,MUKATSAR,11 KV SAIDANWALI(FL07),Cancellation Request Approved (Permit not active),2026-10-11T13:13:32Z,2026-10-11T13:11:00Z
+27441,MUKATSAR,11 KV SITO(FL03),Cancellation Request Approved (Permit not active),2026-10-11T13:06:06Z,2026-10-11T13:05:00Z
+27440,JALANDHAR,INDUSTRIAL AREA 1(FL14),Cancellation Request Approved (Permit not active),2026-10-11T13:06:00Z,2026-10-11T13:04:00Z
+27439,MUKATSAR,PANJKOSI(FL06),Cancellation Request Approved (Permit not active),2026-10-11T12:37:32Z,2026-10-11T12:35:00Z
+27438,CITY AMRITSAR,Lawrence Road(FL01),Cancellation Request Approved (Permit not active),2026-10-11T12:32:31Z,2026-10-11T12:31:00Z
+27437,KAPURTHALA,"Kangna(FL01), UPS KACHI SARAI KHAS(FL11), Gill(FL08), URBAN INDUSTRY(FL17)",Cancellation Request Approved (Permit not active),2026-10-11T12:31:18Z,2026-10-11T12:30:00Z
+27436,SANGRUR,11 KV SAHID UDHAM SINGH URBAN(FL21),Cancellation Request Approved (Permit not active),2026-10-11T12:14:32Z,2026-10-11T12:13:00Z
+27435,MUKATSAR,"11 KV KANDHWALA Road Urban(FL10), 11 KV Rajiv Nagar(FL16)",Cancellation Request Approved (Permit not active),2026-10-11T11:55:55Z,2026-10-11T11:55:00Z
+27434,BATHINDA,Kachha Vas(FL10),Cancellation Request Approved (Permit not active),2026-10-11T11:51:28Z,2026-10-11T11:50:00Z
+27433,SUB URBAN AMRITSAR,silverstate(Fl09),Cancellation Request Approved (Permit not active),2026-10-11T11:41:55Z,2026-10-11T11:41:00Z
+27432,SANGRUR,Geeta Bhawan Road Dirba C-1(FL20),Cancellation Request Approved (Permit not active),2026-10-11T11:14:54Z,2026-10-11T11:13:00Z
+27431,SANGRUR,24 HRS. MAHASINGHWALA(FL07),Cancellation Request Approved (Permit not active),2026-10-11T11:10:57Z,2026-10-11T11:10:00Z
+27430,JALANDHAR,DRY LEATHER COMPLEX(FL01),Cancellation Request Approved (Permit not active),2026-10-11T10:06:45Z,2026-10-11T10:05:00Z
+27429,CITY WEST LUDHIANA,Aman Park(FL03),Rejected BY SSA/SSO,2026-10-11T09:53:19Z,2026-10-11T09:51:00Z
+27428,CITY WEST LUDHIANA,Aman Park(FL03),Cancellation Request Approved (Permit not active),2026-10-11T09:51:13Z,2026-10-11T09:50:00Z
+27427,GURDASPUR,CITY 2(FL11),Cancellation Request Approved (Permit not active),2026-10-11T09:02:29Z,2026-10-11T09:00:00Z
+27426,SANGRUR,Khokhar UPS(FL06),Cancellation Request Approved (Permit not active),2026-10-11T08:26:22Z,2026-10-11T08:25:00Z
+27425,CITY AMRITSAR,JOSHI COLONY(FL05),Cancellation Request Approved (Permit not active),2026-10-11T08:02:02Z,2026-10-11T08:00:00Z
+27424,SANGRUR,11 KV  LAKHMIRWALA UPS(FL11),Cancellation Request Approved (Permit not active),2026-10-11T07:52:36Z,2026-10-11T07:48:00Z
+27423,SUB URBAN AMRITSAR,SEC-4 RANJIT AVENUE(FL11),Cancellation Request Approved (Permit not active),2026-10-11T01:50:00Z,2026-10-11T01:49:00Z
+27422,SANGRUR,MEHLAN UPS(FLO1),Cancellation Request Approved (Permit not active),2026-10-10T21:37:00Z,2026-10-10T21:35:00Z
+27421,PATIALA,11 KV RAI MAJRA(FL15),Cancellation Request Approved (Permit not active),2026-10-10T20:30:36Z,2026-10-10T20:29:00Z
+27420,SANGRUR,"INDUSTRIAL CAT-II (Bhasour)(.), City(__)",Cancellation Request Approved (Permit not active),2026-10-10T20:24:36Z,2026-10-10T20:23:00Z
+27419,PATIALA,Jagdish Colony(FL04),Cancellation Request Approved (Permit not active),2026-10-10T19:26:49Z,2026-10-10T19:26:00Z
+27418,JALANDHAR,Heera pur(FL18),Cancellation Request Approved (Permit not active),2026-10-10T19:14:11Z,2026-10-10T19:12:00Z
+27417,JALANDHAR,SUN FLAG(FL29),Cancellation Request Approved (Permit not active),2026-10-10T17:31:51Z,2026-10-10T17:30:00Z
+27416,SANGRUR,Ballran C-1(FL01),Cancellation Request Approved (Permit not active),2026-10-10T17:29:33Z,2026-10-10T17:29:00Z
+27415,MUKATSAR,"New Patrewala UPS(FL05), 11 KV Danewala AP(FL06)",Cancellation Request Approved (Permit not active),2026-10-10T17:09:43Z,2026-10-10T17:09:00Z
+27414,SANGRUR,Industrial Siana road(FL14),Cancellation Request Approved (Permit not active),2026-10-10T17:00:53Z,2026-10-10T17:00:00Z
+27413,JALANDHAR,LADOWALI ROAD(FL04),Cancellation Request Approved (Permit not active),2026-10-10T16:56:45Z,2026-10-10T16:56:00Z
+27412,GURDASPUR,Pangoli(FL04),Cancellation Request Approved (Permit not active),2026-10-10T16:48:01Z,2026-10-10T16:47:00Z
+27411,GURDASPUR,CITY-3(FL15),Permit Request Submitted (Permit not active),2026-10-10T16:47:36Z,2026-10-10T16:46:00Z
+27410,MUKATSAR,11 KV Dhaban Kokrian(FL04),Cancellation Request Approved (Permit not active),2026-10-10T16:24:16Z,2026-10-10T16:23:00Z
+27409,KHANNA,AP concast(FL32),Rejected BY SSA/SSO,2026-10-10T16:11:11Z,2026-10-10T16:09:00Z
+27408,CITY WEST LUDHIANA,CENTRA GREENS(FL16),Cancellation Request Approved (Permit not active),2026-10-10T16:06:41Z,2026-10-10T16:05:00Z
+27407,KHANNA,AP concast(FL32),Cancellation Request Approved (Permit not active),2026-10-10T16:01:45Z,2026-10-10T16:01:00Z
+27406,CITY WEST LUDHIANA,MANAKWAL(FL06),Cancellation Request Approved (Permit not active),2026-10-10T15:59:11Z,2026-10-10T15:58:00Z
+27405,CITY WEST LUDHIANA,SHAM NAGAR(FL05),Cancellation Request Approved (Permit not active),2026-10-10T15:31:59Z,2026-10-10T15:31:00Z
+27404,MUKATSAR,KRISHNA NAGRI(FL02),Cancellation Request Approved (Permit not active),2026-10-10T15:16:53Z,2026-10-10T15:15:00Z
+27403,JALANDHAR,11 KV Deol Nagar(FL19),Cancellation Request Approved (Permit not active),2026-10-10T15:14:12Z,2026-10-10T15:11:00Z
+27402,PATIALA,UPS-3 (SEHRI)(E18),Cancellation Request Approved (Permit not active),2026-10-10T15:03:54Z,2026-10-10T15:01:00Z
+27401,PATIALA,BAGRIAN CAT-1(FL26),Cancellation Request Approved (Permit not active),2026-10-10T14:52:57Z,2026-10-10T14:52:00Z
+27400,KHANNA,DEVI DAWALA feeder(FL23),Cancellation Request Approved (Permit not active),2026-10-10T14:37:53Z,2026-10-10T14:36:00Z
+27399,NAWANSHAHR,"UPS No. 2(FL09), CHAHAL KALAN(FL15), Aujla(FL05)",Cancellation Request Approved (Permit not active),2026-10-10T14:28:16Z,2026-10-10T14:26:00Z
+27398,KHANNA,KRISHNA(FL17),Cancellation Request Approved (Permit not active),2026-10-10T14:26:43Z,2026-10-10T14:25:00Z
+27397,PATIALA,BAJWA COLONY(FL26),Cancellation Request Approved (Permit not active),2026-10-10T14:22:37Z,2026-10-10T14:21:00Z
+27396,PATIALA,Virk Colony(FL20),Cancellation Request Approved (Permit not active),2026-10-10T14:21:17Z,2026-10-10T14:20:00Z
+27395,GURDASPUR,Ranipur(FL03),Rejected BY SSA/SSO,2026-10-10T14:18:37Z,2026-10-10T14:18:00Z
+27394,CITY WEST LUDHIANA,MAHAVIR NAGAR(FL09),Cancellation Request Approved (Permit not active),2026-10-10T14:18:34Z,2026-10-10T14:17:00Z
+27393,GURDASPUR,Ranipur(FL03),Cancellation Request Approved (Permit not active),2026-10-10T14:17:52Z,2026-10-10T14:17:00Z
+27392,NAWANSHAHR,SADHOWAL(FL05),Cancellation Request Approved (Permit not active),2026-10-10T14:16:28Z,2026-10-10T14:12:00Z
+27391,KHANNA,MALKO MAJRA(FL01),Cancellation Request Approved (Permit not active),2026-10-10T14:08:04Z,2026-10-10T14:06:00Z
+27390,JALANDHAR,"phagwara gate(fl08), 11KV PARTAP BHAG(FL22)",Cancellation Request Approved (Permit not active),2026-10-10T13:08:26Z,2026-10-10T13:06:00Z
+27389,SANGRUR,24 HOURS NIDAMPUR(FL07),Cancellation Request Approved (Permit not active),2026-10-10T13:08:24Z,2026-10-10T13:07:00Z
+27388,MUKATSAR,11 KV KILLIANWALI(FL06),Cancellation Request Approved (Permit not active),2026-10-10T13:07:57Z,2026-10-10T13:07:00Z
+27387,GURDASPUR,Coco Cola ( Wave Beverages )(FL18),Cancellation Request Approved (Permit not active),2026-10-10T12:58:17Z,2026-10-10T12:56:00Z
+27386,JALANDHAR,"11KV UDESIAN(FL13), HARIPUR(FL02)",Cancellation Request Approved (Permit not active),2026-10-10T12:51:21Z,2026-10-10T12:50:00Z
+27385,PATIALA,Veer Singh Colony(FL05),Cancellation Request Approved (Permit not active),2026-10-10T12:49:28Z,2026-10-10T12:47:00Z
+27384,SANGRUR,Meerheri(FL09),Cancellation Request Approved (Permit not active),2026-10-10T12:41:03Z,2026-10-10T12:39:00Z
+27383,MUKATSAR,11 KV Dhaban Kokrian(FL04),Cancellation Request Approved (Permit not active),2026-10-10T12:37:36Z,2026-10-10T12:36:00Z
+27382,CITY WEST LUDHIANA,E Block(DO28),Cancellation Request Approved (Permit not active),2026-10-10T12:34:47Z,2026-10-10T12:34:00Z
+27381,JALANDHAR,"MANDI ROAD(FL12), QILA MOHALLA(FL23)",Cancellation Request Approved (Permit not active),2026-10-10T12:32:55Z,2026-10-10T12:31:00Z
+27380,PATIALA,Nehru Park(FL14),Cancellation Request Approved (Permit not active),2026-10-10T12:25:17Z,2026-10-10T12:24:00Z
+27379,MUKATSAR,11 KV SAIDANWALI(FL07),Cancellation Request Approved (Permit not active),2026-10-10T12:24:51Z,2026-10-10T12:23:00Z
+27378,SANGRUR,11KV UPS TOGAWAL(FL08),Cancellation Request Approved (Permit not active),2026-10-10T12:11:51Z,2026-10-10T12:10:00Z
+27377,CITY WEST LUDHIANA,TIKONA PARK(FL23),Cancellation Request Approved (Permit not active),2026-10-10T12:11:01Z,2026-10-10T12:10:00Z
+27376,KAPURTHALA,Darbar Paper Mill(FL10),Cancellation Request Approved (Permit not active),2026-10-10T12:06:48Z,2026-10-10T12:06:00Z
+27375,SANGRUR,Ballran C-1(FL01),Cancellation Request Approved (Permit not active),2026-10-10T12:06:32Z,2026-10-10T12:04:00Z
+27374,GURDASPUR,HABIBPUR(FL08),Cancellation Request Approved (Permit not active),2026-10-10T12:04:21Z,2026-10-10T12:03:00Z
+27373,GURDASPUR,"Nawan Pind(FL06), MUGRALA(FL7), Ghesal(FL11), Gujran Lahri(FL05), Saidipur(FL02), Kanwan(FL09)",Cancellation Request Approved (Permit not active),2026-10-10T11:56:19Z,2026-10-10T11:55:00Z
+27372,CITY WEST LUDHIANA,SHAM NAGAR(FL05),Cancellation Request Approved (Permit not active),2026-10-10T11:54:47Z,2026-10-10T11:54:00Z
+27371,MUKATSAR,11 KV Kera Khera(FL03),Cancellation Request Approved (Permit not active),2026-10-10T11:49:34Z,2026-10-10T11:48:00Z
+27370,KHANNA,Vasu Multimetal(FL11),Cancellation Request Approved (Permit not active),2026-10-10T11:40:16Z,2026-10-10T11:39:00Z
+27369,KHANNA,Payal city(FL03),Cancellation Request Approved (Permit not active),2026-10-10T11:21:44Z,2026-10-10T11:20:00Z
+27368,MUKATSAR,11 KV Circular Road(FL12),Cancellation Request Approved (Permit not active),2026-10-10T11:20:52Z,2026-10-10T11:19:00Z
+27367,GURDASPUR,Tharial(FL5),Cancellation Request Approved (Permit not active),2026-10-10T11:09:04Z,2026-10-10T11:08:00Z
+27366,SANGRUR,"Industrial Siana road(FL14), CHANGAL(FL06), Industrial(FL13)",Cancellation Request Approved (Permit not active),2026-10-10T11:02:07Z,2026-10-10T11:01:00Z
+27365,SANGRUR,11 KV CHHAJLI INDUSTRIAL(FL04),Cancellation Request Approved (Permit not active),2026-10-10T10:40:33Z,2026-10-10T10:40:00Z
+27364,JALANDHAR,NARANGPUR(FL04),Cancellation Request Approved (Permit not active),2026-10-10T10:27:54Z,2026-10-10T10:27:00Z
+27363,SUB URBAN AMRITSAR,MES(FL02),Cancellation Request Approved (Permit not active),2026-10-10T10:21:45Z,2026-10-10T10:18:00Z
+27362,BARNALA,Dasonda Singh wala CAT-1(FL02),Cancellation Request Approved (Permit not active),2026-10-10T09:36:52Z,2026-10-10T09:32:00Z
+27361,ROPAR,11kv kotla hydle feeder(FL08),Cancellation Request Approved (Permit not active),2026-10-10T09:33:10Z,2026-10-10T09:31:00Z
+27360,SANGRUR,11 KV MAYA GARDEN(FL-3),Cancellation Request Approved (Permit not active),2026-10-10T09:13:04Z,2026-10-10T09:09:00Z
+27359,MUKATSAR,"11 KV KULAR(FL02), 11 KV KHATWAN(FL03)",Cancellation Request Approved (Permit not active),2026-10-10T09:04:13Z,2026-10-10T09:02:00Z
+27358,PATIALA,11 KV RAI MAJRA(FL15),Cancellation Request Approved (Permit not active),2026-10-10T08:19:05Z,2026-10-10T08:18:00Z
+27357,CITY WEST LUDHIANA,AMRIT FASTNER(FL06),Cancellation Request Approved (Permit not active),2026-10-10T03:43:57Z,2026-10-10T03:43:00Z
+27356,SANGRUR,11 KV CITY SUNAM URBAN(FL14),Cancellation Request Approved (Permit not active),2026-10-10T01:59:16Z,2026-10-10T01:57:00Z
